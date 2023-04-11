@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 29, 2023 at 02:24 AM
+-- Generation Time: Apr 10, 2023 at 09:36 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -24,33 +24,58 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `assessments`
+-- Table structure for table `assessment_applications`
 --
 
-CREATE TABLE `assessments` (
-  `id` int(11) NOT NULL,
+CREATE TABLE `assessment_applications` (
+  `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `course_id` bigint(20) UNSIGNED NOT NULL,
-  `date_scheduled` date NOT NULL,
-  `status` varchar(20) NOT NULL,
-  `result` enum('competent','not competent') DEFAULT NULL,
+  `school_training_center_company` varchar(255) NOT NULL,
+  `assessment_title` varchar(255) NOT NULL,
+  `application_type` enum('full_qualification','COC','renewal') NOT NULL,
+  `client_type` enum('TVET_graduating_student','TVET_graduate','industry_worker','K12','OFW') NOT NULL,
+  `surname` varchar(255) NOT NULL,
+  `first_name` varchar(255) NOT NULL,
+  `middle_name` varchar(255) NOT NULL,
+  `applicant_address` varchar(255) NOT NULL,
+  `gender` enum('male','female','other') NOT NULL,
+  `civil_status` enum('single','married','divorced','widowed') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `status` enum('pending','scheduled','completed','failed') NOT NULL DEFAULT 'pending',
+  `application_number` varchar(255) DEFAULT NULL,
+  `cancellation_status` varchar(255) DEFAULT NULL,
+  `viewed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `assessment_applications`
+--
+
+INSERT INTO `assessment_applications` (`id`, `user_id`, `course_id`, `school_training_center_company`, `assessment_title`, `application_type`, `client_type`, `surname`, `first_name`, `middle_name`, `applicant_address`, `gender`, `civil_status`, `created_at`, `updated_at`, `status`, `application_number`, `cancellation_status`, `viewed`) VALUES
+(10, 11, 22, 'Great Enthusiasts of Skills Training Academy', 'Cookery NC II', 'full_qualification', 'TVET_graduating_student', 'Viloria', 'Brian', 'Ferrer', '333 Mayala', 'male', 'single', '2023-04-10 06:34:05', '2023-04-10 07:07:14', 'scheduled', 'COO-00001', NULL, 1);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `assessment_criteria`
+-- Table structure for table `assessment_schedules`
 --
 
-CREATE TABLE `assessment_criteria` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` varchar(255) DEFAULT NULL,
+CREATE TABLE `assessment_schedules` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `assessment_application_id` bigint(20) UNSIGNED NOT NULL,
+  `scheduled_date` date NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `assessment_schedules`
+--
+
+INSERT INTO `assessment_schedules` (`id`, `assessment_application_id`, `scheduled_date`, `created_at`, `updated_at`) VALUES
+(4, 10, '2023-04-22', '2023-04-10 07:07:14', '2023-04-10 07:07:55');
 
 -- --------------------------------------------------------
 
@@ -72,7 +97,8 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`, `description`, `category_id`, `created_at`, `updated_at`) VALUES
-(26, 'ICT', 'This is the prerequisite module for Computer Systems Servicing NC II. Make sure to take this module before proceeding to other modules for CSS. This module will teach you the fundamentals and basics of the computer system before you proceed to the actual and hands-on computer servicing.', NULL, '2023-03-22 06:33:31', '2023-03-22 06:33:31');
+(27, 'ICT', 'Information Communication Technology', NULL, '2023-04-06 09:14:05', '2023-04-06 09:14:05'),
+(28, 'Culinary Arts', 'Culinary', NULL, '2023-04-06 09:16:23', '2023-04-06 09:16:23');
 
 -- --------------------------------------------------------
 
@@ -115,7 +141,8 @@ CREATE TABLE `courses` (
 --
 
 INSERT INTO `courses` (`id`, `name`, `description`, `image`, `category_id`, `instructor_id`, `price`, `created_at`, `updated_at`, `training_hours`) VALUES
-(19, 'Computer System Servicing NCII', 'This is the prerequisite module for Computer Systems Servicing NC II. Make sure to take this module before proceeding to other modules for CSS. This module will teach you the fundamentals and basics of the computer system before you proceed to the actual and hands-on computer servicing.', 'courses/1679495667.png', 26, 2, '37000.00', '2023-03-22 06:34:27', '2023-03-22 06:34:27', 148);
+(21, 'Computer System Servicing NCII', 'The COMPUTER SYSTEMS SERVICING NC II Qualification consists of competenciesthat must possess to enable to install and configure computers systems, set-up computer networks and servers and to maintain and repair computer systems and networks.', 'courses/1680802233.png', 27, 15, '37000.00', '2023-04-06 09:15:28', '2023-04-06 09:30:33', 285),
+(22, 'Cookery NC II', 'The COOKERY NC II Qualification consists of competencies that a personmust achieve to clean kitchen areas, prepare hot, cold meals and desserts for guests in various food and beverage service facilities', 'courses/1680802241.png', 28, 15, '12000.00', '2023-04-06 09:17:26', '2023-04-06 09:30:41', 316);
 
 -- --------------------------------------------------------
 
@@ -130,17 +157,10 @@ CREATE TABLE `enrollments` (
   `enrollment_type` enum('scholarship','regular_training','assessment') DEFAULT 'regular_training',
   `status` enum('inReview','inProgress','enrolled') NOT NULL DEFAULT 'inReview',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `cancellation_status` varchar(255) DEFAULT NULL,
+  `viewed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `enrollments`
---
-
-INSERT INTO `enrollments` (`id`, `user_id`, `course_id`, `enrollment_type`, `status`, `created_at`, `updated_at`) VALUES
-(56, 5, 19, 'scholarship', 'inReview', '2023-03-22 06:36:33', '2023-03-22 06:36:33'),
-(59, 6, 19, 'regular_training', 'inProgress', '2023-03-22 22:38:32', '2023-03-27 18:07:20'),
-(60, 7, 19, 'scholarship', 'enrolled', '2023-03-27 10:24:29', '2023-03-27 18:07:37');
 
 -- --------------------------------------------------------
 
@@ -157,20 +177,6 @@ CREATE TABLE `enrollment_documents` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `enrollment_documents`
---
-
-INSERT INTO `enrollment_documents` (`id`, `name`, `enrollment_id`, `document_type`, `path`, `created_at`, `updated_at`) VALUES
-(56, 'otr', 56, 'otr', 'enrollment/56/334126025_959489481871916_1022312431440769395_n.png', '2023-03-22 06:38:46', '2023-03-22 06:38:46'),
-(57, 'birth_certificate', 56, 'birth_certificate', 'enrollment/56/viber_image_2023-03-17_09-12-52-202.jpg', '2023-03-22 06:38:46', '2023-03-22 06:38:46'),
-(65, 'otr', 59, 'otr', 'enrollment/59/Test.pdf', '2023-03-22 22:39:22', '2023-03-22 22:39:22'),
-(66, 'birth_certificate', 59, 'birth_certificate', 'enrollment/59/Test2.pdf', '2023-03-22 22:39:22', '2023-03-22 22:39:22'),
-(67, 'marriage_certificate', 59, 'marriage_certificate', 'enrollment/59/Test3.pdf', '2023-03-22 22:39:22', '2023-03-22 22:39:22'),
-(68, 'otr', 60, 'otr', 'enrollment/60/Test2.pdf', '2023-03-27 10:25:44', '2023-03-27 10:25:44'),
-(69, 'birth_certificate', 60, 'birth_certificate', 'enrollment/60/Test2.pdf', '2023-03-27 10:25:44', '2023-03-27 10:25:44'),
-(70, 'marriage_certificate', 60, 'marriage_certificate', 'enrollment/60/Test.pdf', '2023-03-27 10:25:44', '2023-03-27 10:25:44');
 
 -- --------------------------------------------------------
 
@@ -193,8 +199,7 @@ CREATE TABLE `instructors` (
 --
 
 INSERT INTO `instructors` (`id`, `name`, `bio`, `image`, `created_at`, `updated_at`, `area_of_field`) VALUES
-(2, 'John Bautista', 'Video Editor', 'instructor/64224bc1b9a2f/64224bc1b9a2f.jpg', NULL, '2023-03-27 18:06:57', 'Agriculture and Fisheries'),
-(12, 'Loyde', 'xxx', 'instructor/6421e3eb60f12/6421e3eb60f12.jpg', '2023-03-27 10:43:55', '2023-03-27 15:34:31', 'Tourism');
+(15, 'Ian B. Galutira', 'Nothing to display here', 'instructor/642ef791025fe/642ef791025fe.jpg', '2023-04-06 08:47:13', '2023-04-06 08:48:00', 'Electronics');
 
 -- --------------------------------------------------------
 
@@ -233,15 +238,6 @@ CREATE TABLE `personal_information` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `personal_information`
---
-
-INSERT INTO `personal_information` (`id`, `enrollment_id`, `fullname`, `address`, `age`, `contact_number`, `facebook`, `currently_schooling`, `employment_status`, `created_at`, `updated_at`) VALUES
-(47, 56, 'Student 0. 001', 'Agoo La Union', 18, '09167252664', 'NA', 'no', 'unemployed', '2023-03-22 06:38:21', '2023-03-22 06:38:21'),
-(50, 59, 'aa', 'aa', 21, '09167252664', 'aa', 'no', 'unemployed', '2023-03-22 22:38:53', '2023-03-22 22:38:53'),
-(51, 60, 'Noy Calimlim', '323 Sto Nino Street', 34, '09057037903', 'aa', 'no', 'unemployed', '2023-03-27 10:24:45', '2023-03-27 10:24:45');
-
 -- --------------------------------------------------------
 
 --
@@ -261,9 +257,8 @@ CREATE TABLE `qualifications` (
 --
 
 INSERT INTO `qualifications` (`id`, `instructor_id`, `title`, `created_at`, `updated_at`) VALUES
-(27, 12, 'Commercial Cooking NC II', '2023-03-27 15:34:31', '2023-03-27 15:34:31'),
-(28, 12, 'Electrical Installation and Maintenance NC II', '2023-03-27 15:34:31', '2023-03-27 15:34:31'),
-(32, 2, 'Bartending NC II', '2023-03-27 18:06:57', '2023-03-27 18:06:57');
+(43, 15, 'Computer Systems Servicing NC II', '2023-04-06 08:48:00', '2023-04-06 08:48:00'),
+(44, 15, 'Programming NC IV', '2023-04-06 08:48:00', '2023-04-06 08:48:00');
 
 -- --------------------------------------------------------
 
@@ -296,22 +291,6 @@ CREATE TABLE `role_user` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `student_assessments`
---
-
-CREATE TABLE `student_assessments` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED NOT NULL,
-  `assessment_criteria_id` bigint(20) UNSIGNED NOT NULL,
-  `result` varchar(255) NOT NULL DEFAULT 'not yet competent',
-  `assessed_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `users`
 --
 
@@ -324,7 +303,7 @@ CREATE TABLE `users` (
   `remember_token` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `role` enum('admin','student') DEFAULT 'student'
+  `role` enum('admin','student','inactive_student') DEFAULT 'student'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -333,28 +312,27 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`, `role`) VALUES
 (1, 'Chester Allansssss', 'admin@example.com', NULL, '$2y$10$foAPVN5PcTFKefSN0NUqC.n826Yt/Nvw0bknpSEVkgW3qMKyZ0046', NULL, NULL, '2023-02-22 14:01:36', 'admin'),
-(5, 'Student_001', 'student_001@gmail.com', NULL, '$2y$10$T6l4ZUYhkQ3Tz3YEN6plH.Em3BclO86xaXUsp4rWSIwfzhqnHfT16', NULL, '2023-03-22 06:36:07', '2023-03-22 06:36:07', 'student'),
-(6, 'Student 002', 'student_002@gmail.com', NULL, '$2y$10$7Fm9VcJ8fXoZwWaBauUIIOYEJ9687OX4DlRJQQooeCjU7rcSxm43S', NULL, '2023-03-22 22:09:10', '2023-03-22 22:09:10', 'student'),
-(7, 'Noy Noy', 'noy@gmail.com', NULL, '$2y$10$cMJdQ6acRSNSOV0UwgtPveNnmj5E197wWFLXiH7ZlG/OlmF4fRy5q', NULL, '2023-03-27 10:24:15', '2023-03-27 10:24:15', 'student'),
-(8, 'Maria', 'victoria@mail.com', NULL, '$2y$10$n4Xx2flyGHUsyM5T1tfgcO8isyhKQ0o04ummWRaCvvvZhpIpGkmXa', NULL, '2023-03-27 21:24:24', '2023-03-27 21:24:24', 'student');
+(10, 'Ryan Rosario', 'ryan@mail.com', NULL, '$2y$10$I2MUl3.bFVlB.ZEEDK6DSOcyuyEL5JIcjojHFs0eb5w/l37aOYN.6', NULL, '2023-04-06 09:31:39', '2023-04-10 11:00:03', 'inactive_student'),
+(11, 'Brian Viloria', 'brian@mail.com', NULL, '$2y$10$sjPiF.QE/b8aA8O.7Em6COhC.axxz.5eybBXzGCWFXbh6XKspfKzS', NULL, '2023-04-10 04:59:30', '2023-04-10 10:46:38', 'inactive_student');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `assessments`
+-- Indexes for table `assessment_applications`
 --
-ALTER TABLE `assessments`
+ALTER TABLE `assessment_applications`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `course_id` (`course_id`);
 
 --
--- Indexes for table `assessment_criteria`
+-- Indexes for table `assessment_schedules`
 --
-ALTER TABLE `assessment_criteria`
-  ADD PRIMARY KEY (`id`);
+ALTER TABLE `assessment_schedules`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `assessment_application_id` (`assessment_application_id`);
 
 --
 -- Indexes for table `categories`
@@ -437,14 +415,6 @@ ALTER TABLE `role_user`
   ADD KEY `role_user_user_id_foreign` (`user_id`);
 
 --
--- Indexes for table `student_assessments`
---
-ALTER TABLE `student_assessments`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `student_assessments_user_id_foreign` (`user_id`),
-  ADD KEY `student_assessments_assessment_criteria_id_foreign` (`assessment_criteria_id`);
-
---
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -456,22 +426,22 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT for table `assessments`
+-- AUTO_INCREMENT for table `assessment_applications`
 --
-ALTER TABLE `assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `assessment_applications`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT for table `assessment_criteria`
+-- AUTO_INCREMENT for table `assessment_schedules`
 --
-ALTER TABLE `assessment_criteria`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `assessment_schedules`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `certificates`
@@ -483,25 +453,25 @@ ALTER TABLE `certificates`
 -- AUTO_INCREMENT for table `courses`
 --
 ALTER TABLE `courses`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `enrollments`
 --
 ALTER TABLE `enrollments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT for table `enrollment_documents`
 --
 ALTER TABLE `enrollment_documents`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
 
 --
 -- AUTO_INCREMENT for table `instructors`
 --
 ALTER TABLE `instructors`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -513,13 +483,13 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `personal_information`
 --
 ALTER TABLE `personal_information`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `qualifications`
 --
 ALTER TABLE `qualifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -534,27 +504,27 @@ ALTER TABLE `role_user`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `student_assessments`
---
-ALTER TABLE `student_assessments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `assessments`
+-- Constraints for table `assessment_applications`
 --
-ALTER TABLE `assessments`
-  ADD CONSTRAINT `assessments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `assessments_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`);
+ALTER TABLE `assessment_applications`
+  ADD CONSTRAINT `assessment_applications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `assessment_applications_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`);
+
+--
+-- Constraints for table `assessment_schedules`
+--
+ALTER TABLE `assessment_schedules`
+  ADD CONSTRAINT `assessment_schedules_ibfk_1` FOREIGN KEY (`assessment_application_id`) REFERENCES `assessment_applications` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `categories`
@@ -614,13 +584,6 @@ ALTER TABLE `qualifications`
 ALTER TABLE `role_user`
   ADD CONSTRAINT `role_user_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
   ADD CONSTRAINT `role_user_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-
---
--- Constraints for table `student_assessments`
---
-ALTER TABLE `student_assessments`
-  ADD CONSTRAINT `student_assessments_assessment_criteria_id_foreign` FOREIGN KEY (`assessment_criteria_id`) REFERENCES `assessment_criteria` (`id`),
-  ADD CONSTRAINT `student_assessments_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

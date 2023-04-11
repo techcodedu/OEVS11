@@ -10,6 +10,27 @@
     color: #007bff;
 }
 </style>
+
+@if ($errors->has('inactive'))
+    <div class="modal" tabindex="-1" id="inactive-modal" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Account Deactivated</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>{{ $errors->first('inactive') }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="closeModal()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
 <a href="/" class="home-link"><i class="fas fa-home"></i></a>
     <div class="card-body login-card-body">
         <p class="login-box-msg">{{ __('Login') }}</p>
@@ -76,4 +97,9 @@
     
     </div>
     <!-- /.login-card-body -->
+    <script>
+        function closeModal() {
+            document.getElementById("inactive-modal").style.display = "none";
+        }
+    </script>
 @endsection

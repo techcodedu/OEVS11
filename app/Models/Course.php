@@ -21,7 +21,11 @@ class Course extends Model
     {
         return $this->hasMany(Enrollment::class);
     }
-    
+    public function assessmentApplications()
+    {
+        return $this->hasMany(AssessmentApplication::class);
+    }
+        
 
 
     public function instructor()

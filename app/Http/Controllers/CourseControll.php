@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Models\Category;
 use App\Models\Instructor;
+use Illuminate\Support\Facades\Storage;
 
 class CourseControll extends Controller
 {
@@ -34,9 +35,6 @@ class CourseControll extends Controller
             'price' => 'required|numeric|min:0',
             'training_hours' => 'nullable|numeric|min:0',
         ]);
-
-     
-        
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -79,8 +77,16 @@ public function update(Request $request, Course $course)
     ]);
 
     if ($request->hasFile('image')) {
-        $imagePath = $request->file('image')->store('public/images');
-        $validatedData['image'] = str_replace('public/', 'storage/', $imagePath);
+        // Delete the old image
+        if ($course->image) {
+            Storage::disk('public')->delete($course->image);
+        }
+
+        // Save the new image
+        $image = $request->file('image');
+        $imageName = time() . '.' . $image->extension();
+        $imagePath = $image->storeAs('courses', $imageName, 'public');
+        $validatedData['image'] = $imagePath;
     }
 
     $course->update($validatedData);

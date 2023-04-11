@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Assessment extends Model
+class AssessmentApplication extends Model
 {
     use HasFactory;
 
@@ -17,9 +17,19 @@ class Assessment extends Model
     protected $fillable = [
         'user_id',
         'course_id',
-        'date_scheduled',
+        'school_training_center_company',
+        'address',
+        'assessment_title',
+        'application_type',
+        'client_type',
+        'surname',
+        'first_name',
+        'middle_name',
+        'applicant_address',
+        'gender',
+        'civil_status',
         'status',
-        'result'
+        'cancellation_status'
     ];
 
     public function user()
@@ -31,4 +41,9 @@ class Assessment extends Model
     {
         return $this->belongsTo(Course::class);
     }
+    public function schedule()
+    {
+        return $this->hasOne(AssessmentSchedule::class);
+    }
+
 }

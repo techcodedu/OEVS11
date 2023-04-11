@@ -30,6 +30,13 @@ class UsersLoginController extends Controller
                 return redirect('/dashboard');
             }
 
+            if (Auth::user()->role === 'inactive_student') {
+                Auth::logout();
+                return back()->withErrors([
+                    'inactive' => 'Your account has been deactivated. Please contact the administrator to reactivate your account.',
+                ]);
+            }
+
             return redirect('/');
         }
 

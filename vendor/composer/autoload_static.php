@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9445127bae247682452bc1e96e1f7ef3
+class ComposerStaticInit3e5091ac03b585299c8ee3e7c4be049f
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
@@ -527,6 +527,7 @@ class ComposerStaticInit9445127bae247682452bc1e96e1f7ef3
         'App\\Console\\Commands\\CheckFileExists' => __DIR__ . '/../..' . '/app/Console/Commands/CheckFileExists.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
+        'App\\Http\\Controllers\\AssessmentController' => __DIR__ . '/../..' . '/app/Http/Controllers/AssessmentController.php',
         'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
         'App\\Http\\Controllers\\Auth\\RegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/RegisterController.php',
@@ -562,6 +563,8 @@ class ComposerStaticInit9445127bae247682452bc1e96e1f7ef3
         'App\\Http\\Middleware\\ValidateSignature' => __DIR__ . '/../..' . '/app/Http/Middleware/ValidateSignature.php',
         'App\\Http\\Middleware\\VerifyCsrfToken' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyCsrfToken.php',
         'App\\Http\\Requests\\ProfileUpdateRequest' => __DIR__ . '/../..' . '/app/Http/Requests/ProfileUpdateRequest.php',
+        'App\\Models\\AssessmentApplication' => __DIR__ . '/../..' . '/app/Models/AssessmentApplication.php',
+        'App\\Models\\AssessmentSchedule' => __DIR__ . '/../..' . '/app/Models/AssessmentSchedule.php',
         'App\\Models\\Category' => __DIR__ . '/../..' . '/app/Models/Category.php',
         'App\\Models\\Course' => __DIR__ . '/../..' . '/app/Models/Course.php',
         'App\\Models\\Enrollment' => __DIR__ . '/../..' . '/app/Models/Enrollment.php',
@@ -5836,10 +5839,10 @@ class ComposerStaticInit9445127bae247682452bc1e96e1f7ef3
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9445127bae247682452bc1e96e1f7ef3::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9445127bae247682452bc1e96e1f7ef3::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit9445127bae247682452bc1e96e1f7ef3::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit9445127bae247682452bc1e96e1f7ef3::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3e5091ac03b585299c8ee3e7c4be049f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3e5091ac03b585299c8ee3e7c4be049f::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit3e5091ac03b585299c8ee3e7c4be049f::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit3e5091ac03b585299c8ee3e7c4be049f::$classMap;
 
         }, null, ClassLoader::class);
     }

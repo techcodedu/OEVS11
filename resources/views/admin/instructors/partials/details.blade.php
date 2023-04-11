@@ -13,8 +13,8 @@
                     <img src="{{ asset('images/default-user.png') }}" alt="{{ $instructor->name }}" class="img-fluid img-thumbnail">
                 @endif
             </div>
-            <div class="col-md-8">
-                <table class="table table-bordered">
+            <div class="col-md-9">
+                <table class="table">
                     <tr>
                         <th>{{ __('Name') }}</th>
                         <td>{{ $instructor->name }}</td>

@@ -25,13 +25,24 @@
                             <button type="button" class="btn btn-light btn-sm rounded-pill position-absolute bottom-0 end-0" data-toggle="modal" data-target="#courseModal_{{ $course->id }}">
                                 {{ __('View Details') }}
                             </button>
-                            @if (Auth::check() && $course->enrollments()->where('user_id', Auth::user()->id)->where('status', 'inReview')->first())
-                                <span class="badge badge-pill badge-success position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Enrollment being reviewed</span>
-                            @elseif (Auth::check() && $course->enrollments()->where('user_id', Auth::user()->id)->where('status', 'inProgress')->first())
-                                <span class="badge badge-pill badge-success position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Enrollment in Progress</span>
+                            @if (Auth::check() && $course->assessmentApplications()->where('user_id', Auth::user()->id)->where('status', 'scheduled')->whereNull('cancellation_status')->first())
+                                <span class="badge badge-pill badge-success position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Assessment Approved</span>
+                            @elseif (Auth::check() && $course->assessmentApplications()->where('user_id', Auth::user()->id)->where('status', 'pending')->whereNull('cancellation_status')->first())
+                                <span class="badge badge-pill badge-warning position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Application Being Reviewed</span>
                             @else
-                                @if (Auth::check() && $course->enrollments()->where('user_id', Auth::user()->id)->where('status', 'enrolled')->first())
-                                    <span class="badge badge-pill badge-success position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Enrolled</span>
+                                @if (Auth::check())
+                                    @php
+                                        $enrollment = $course->enrollments()->where('user_id', Auth::user()->id)->whereNull('cancellation_status')->first();
+                                    @endphp
+                                    @if ($enrollment)
+                                        @if ($enrollment->status === 'inReview')
+                                            <span class="badge badge-pill badge-warning position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Enrollment in Review</span>
+                                        @elseif ($enrollment->status === 'inProgress')
+                                            <span class="badge badge-pill badge-warning position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Enrollment in Progress</span>
+                                        @elseif ($enrollment->status === 'enrolled')
+                                            <span class="badge badge-pill badge-success position-absolute bottom-0 end-0 me-2 mb-2 p-2 " style="bottom: 5px; right: 10px;">Enrolled</span>
+                                        @endif
+                                    @endif
                                 @endif
                             @endif
                         </div>
@@ -84,22 +95,31 @@
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Close') }}</button>
                                     @auth
-                                        @if($course->enrollments()->where('user_id', Auth::id())->where('status', \App\Models\Enrollment::STATUS_IN_REVIEW)->exists())
-                                            <button type="button" class="btn btn-secondary" disabled>{{ __('Enrollment in Review') }}</button>
-                                        @elseif($course->enrollments()->where('user_id', Auth::id())->where('status', \App\Models\Enrollment::STATUS_IN_PROGRESS)->exists())
-                                            <button type="button" class="btn btn-secondary" disabled>{{ __('Enrollment in Progress') }}</button>
-                                        @elseif($course->enrollments()->where('user_id', Auth::id())->where('status', \App\Models\Enrollment::STATUS_ENROLLED)->exists())
-                                            <button type="button" class="btn btn-secondary" disabled>{{ __('Enrolled') }}</button>
+                                        @php
+                                            $enrollment = $course->enrollments()->where('user_id', Auth::id())->whereNull('cancellation_status')->first();
+                                            $assessmentApplication = $course->assessmentApplications()->where('user_id', Auth::id())->whereNull('cancellation_status')->first();
+                                             $isAssessmentScheduled = $assessmentApplication && $assessmentApplication->status === 'scheduled';
+                                        @endphp
+                                        @if($isAssessmentScheduled)
+                                            <button type="button" class="btn btn-secondary" disabled>{{ __('Assessment Application Approved') }}</button>
                                         @else
-                                            <a href="{{ route('enrollment.form', ['course' => $course->id, 'user' => Auth::id()]) }}" class="btn btn-primary">{{ __('Enroll Now') }}</a>
-                                            <a href="{{ route('assessment.application', ['course' => $course->id, 'user' => Auth::id(), 'enrollment_type' => 'assessment']) }}" class="btn btn-primary">{{ __('Assessment Only') }}</a>
+                                            @if($enrollment && $enrollment->status === \App\Models\Enrollment::STATUS_IN_REVIEW)
+                                                <button type="button" class="btn btn-secondary" disabled>{{ __('Enrollment in Review') }}</button>
+                                            @elseif($enrollment && $enrollment->status === \App\Models\Enrollment::STATUS_IN_PROGRESS)
+                                                <button type="button" class="btn btn-secondary" disabled>{{ __('Enrollment in Progress') }}</button>
+                                            @elseif($enrollment && $enrollment->status === \App\Models\Enrollment::STATUS_ENROLLED)
+                                                <button type="button" class="btn btn-secondary" disabled>{{ __('Enrolled') }}</button>
+                                            @elseif($assessmentApplication && $assessmentApplication->status === \App\Models\AssessmentApplication::STATUS_PENDING)
+                                                <button type="button" class="btn btn-secondary" disabled>{{ __('Assessment Application Pending') }}</button>
+                                            @else
+                                                <a href="{{ route('enrollment.form', ['course' => $course->id, 'user' => Auth::id()]) }}" class="btn btn-primary">{{ __('Enroll Now') }}</a>
+                                                <a href="{{ route('assessment.application', ['course' => $course->id, 'user' => Auth::id(), 'enrollment_type' => 'assessment']) }}" class="btn btn-primary">{{ __('Assessment Only') }}</a>
+                                            @endif
                                         @endif
-                                    @else
-                                        <a href="{{ route('signin') }}" class="btn btn-primary">{{ __('Login to Enroll') }}</a>
-                                    @endauth   
+                                        @else
+                                            <a href="{{ route('signin') }}" class="btn btn-primary">{{ __('Login to Enroll') }}</a>
+                                        @endauth
                                 </div>
-                                
-                                
                             </div>
                         </div>
                     </div>
@@ -110,8 +130,6 @@
         <div class="col-12 text-center py-5">
             <h2 class="text-muted" style="font-size: 30px;">{{ __('No available course in this category.') }}</h2>
         </div>
-        
-        
         @endif
     </div>
 </div>

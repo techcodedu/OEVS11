@@ -31,7 +31,8 @@
                                     <tr>
                                         <th>Name</th>
                                         <th>Email</th>
-                                        <th>System Role</th>
+                                        <th>Role</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -39,14 +40,25 @@
                                     <tr>
                                         <td>{{ $user->name }}</td>
                                         <td>{{ $user->email }}</td>
-                                        <td>Administrator</td>
+                                        <td>
+                                            <span class="badge badge-primary">{{ $user->role }}</span>
+                                        </td>
+                                        <td>
+                                            <form action="{{ route('admin.users.toggleActivation', $user->id) }}" method="POST">
+                                                @csrf
+                                                @if($user->role === 'inactive_student')
+                                                    <button type="submit" class="btn btn-success btn-sm">Activate</button>
+                                                @else
+                                                    <button type="submit" class="btn btn-danger btn-sm">Deactivate</button>
+                                                @endif
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>
                             </table>
                         </div>
                         <!-- /.card-body -->
-
                         <div class="card-footer clearfix">
                             {{ $users->links() }}
                         </div>

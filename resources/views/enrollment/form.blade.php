@@ -25,7 +25,6 @@
                                     <option value="" disabled selected>Select enrollment type</option>
                                     <option value="scholarship">Scholarship</option>
                                     <option value="regular_training">Regular Training</option>
-                                    <option value="assessment">Assessment Only</option>
                                 </select>
                                 @error('enrollment_type')
                                 <span class="invalid-feedback" role="alert">

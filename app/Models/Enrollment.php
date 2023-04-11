@@ -15,7 +15,9 @@ class Enrollment extends Model
         'user_id',
         'course_id',
         'enrollment_type',
-        'status'
+        'status',
+        'cancellation_status',
+        'scholarship_grant' 
     ];
     
     protected $casts = [
@@ -47,7 +49,7 @@ class Enrollment extends Model
 
     public function personalInformation()
     {
-        return $this->hasOne(PersonalInformation::class);
+        return $this->hasOne(PersonalInformation::class)->withDefault();
     }
 
     public function enrollmentDocuments()
@@ -80,4 +82,5 @@ class Enrollment extends Model
 
         return $enrollment;
     }
+    
 }

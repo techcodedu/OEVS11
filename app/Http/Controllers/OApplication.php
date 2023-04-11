@@ -2,31 +2,50 @@
 
 namespace App\Http\Controllers;
 use App\Models\Enrollment;
+use App\Models\AssessmentApplication;
+use App\Models\Course;
+
 use Illuminate\Http\Request;
 
 class OApplication extends Controller
 {
-    //
     public function index()
     {
-        // Get the count of enrollments in each status
-        $enrollmentCounts = [
-            'inReview' => Enrollment::inReview()->count(),
-            'inProgress' => Enrollment::inProgress()->count(),
-            'enrolled' => Enrollment::enrolled()->count(),
-        ];
+        $enrollments = Enrollment::with(['course', 'user', 'personalInformation'])
+                                ->where(function ($query) {
+                                    $query->where('cancellation_status', '!=', 'cancelled')
+                                            ->orWhereNull('cancellation_status');
+                                })
+                                ->paginate(10);
 
-        // Get the latest enrollment
-        $latestEnrollment = Enrollment::latest()->with(['course', 'user'])->first();
+        $assessments = AssessmentApplication::with(['course', 'user', 'schedule'])
+                                    ->where(function ($query) {
+                                        $query->where('cancellation_status', '!=', 'cancelled')
+                                            ->orWhereNull('cancellation_status');
+                                    })
+                                    ->paginate(10);
+        
+        // Call the resetApplicationsCount function
+        $this->resetApplicationsCount();
 
-        // Get the total number of enrollments
-        $totalEnrollments = Enrollment::count();
+        //  retrieve the courses
+        $courses = Course::all();
+                            
+        return view('admin.oapplication', compact('enrollments', 'assessments','courses'));
+    }
 
-        // Get all enrollments with their associated course and user data
-        $enrollments = Enrollment::with(['course', 'user'])->paginate(10);
+    public function showAssessment(AssessmentApplication $assessment)
+    {
+        return view('admin.assessment.show', compact('assessment'));
+    
+    }
 
-        // Pass the data to the view
-        return view('admin.oapplication', compact('enrollmentCounts', 'latestEnrollment', 'totalEnrollments', 'enrollments'));
+    public function resetApplicationsCount()
+    {
+        Enrollment::where('viewed', false)->update(['viewed' => true]);
+        AssessmentApplication::where('viewed', false)->update(['viewed' => true]);
+
+        return response()->json(['success' => 'Applications count reset successfully']);
     }
 
 

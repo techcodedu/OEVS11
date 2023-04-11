@@ -11,6 +11,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Notifications\EnrollmentStatusUpdated;
+use App\Models\AssessmentApplication; 
+use Illuminate\Support\Facades\Log;
+use App\Models\AssessmentSchedule;
+
+
+use Carbon\Carbon;
+
 
 class CourseEnrollmentController extends Controller
 {
@@ -174,6 +181,7 @@ class CourseEnrollmentController extends Controller
 
         $validatedData = $request->validate([
             'enrollment_type' => 'required|in:scholarship,regular_training,assessment',
+            'scholarship_grant' => 'nullable|string|max:255'
         ]);
 
         $enrollment = Enrollment::enroll($user, Course::find($courseId), $validatedData['enrollment_type']);
@@ -194,23 +202,78 @@ class CourseEnrollmentController extends Controller
 
         return view('admin.enrollment.show', compact('enrollment'));
     }
-    // method on realtime update of the status field of the enrollment
+
      // method to update the status field of the enrollment
-     public function updateStatus(Request $request)
-     {
-         $enrollment = Enrollment::findOrFail($request->enrollment);
-         $newStatus = $request->status;
-         $this->updateEnrollmentStatus($enrollment, $newStatus);
-         return response()->json(['success' => true]);
-     }
-     
-     // method to update the status field of the enrollment
-     private function updateEnrollmentStatus(Enrollment $enrollment, $newStatus)
-     {
-         $enrollment->status = $newStatus;
-         $enrollment->save();
-     }
-     
+    public function updateStatus(Request $request)
+    {
+        $enrollment = Enrollment::findOrFail($request->enrollment);
+        $newStatus = $request->status;
+        $scholarshipGrant = $request->input('scholarship_grant');
+        $forceUpdateScholarship = $request->input('force_update_scholarship', false);
+
+        // Directly return the response from updateEnrollmentStatus
+        return $this->updateEnrollmentStatus($enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship);
+    }
+
+
+    // method to update the status field and scholarship_grant field of the enrollment
+    private function updateEnrollmentStatus(Enrollment $enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship)
+    {
+        $enrollment->status = $newStatus;
+
+        // Update the "scholarship_grant" field when the status is "enrolled"
+        if ($newStatus === 'enrolled' && !is_null($enrollment->scholarship_grant) && !$forceUpdateScholarship) {
+            echo "Already exists condition triggered" . PHP_EOL;
+            return response()->json(['success' => false, 'already_exists' => true]);
+        } else {
+            if ($newStatus === 'enrolled') {
+                $enrollment->scholarship_grant = $scholarshipGrant;
+            }
+            $enrollment->save();
+            return response()->json(['success' => true, 'already_exists' => false]);
+        }
+    }
+
+
+
+    // method to realtime update status of assessment
+    public function updateAssessmentStatus(Request $request)
+    {
+        try {
+            $assessment = AssessmentApplication::findOrFail($request->assessment);
+            $newStatus = $request->status;
+            $scheduledDate = $request->scheduled_date;
+
+            if ($newStatus === 'scheduled' && $scheduledDate) {
+                $this->handleAssessmentSchedule($assessment, $scheduledDate);
+            }
+
+            $this->updateAssessmentApplicationStatus($assessment, $newStatus);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function handleAssessmentSchedule($assessment, $scheduledDate)
+    {
+        $assessmentSchedule = AssessmentSchedule::firstOrNew(['assessment_application_id' => $assessment->id]);
+        $assessmentSchedule->scheduled_date = $scheduledDate;
+        $assessmentSchedule->save();
+    }
+
+    private function updateAssessmentApplicationStatus($assessment, $newStatus)
+    {
+        $assessment->status = $newStatus;
+        $assessment->save();
+    }
+    public function checkSchedule(AssessmentApplication $assessment)
+    {
+        return response()->json(['has_schedule' => $assessment->schedule !== null]);
+    }
+
+
+
     //  notification of enrollment status
     public function sendEnrollmentStatusUpdateNotification(Enrollment $enrollment, $newStatus)
     {
@@ -220,5 +283,29 @@ class CourseEnrollmentController extends Controller
         $user = $enrollment->user;
         $user->notify(new EnrollmentStatusUpdated($enrollment));
     }
+    public function show(Course $course)
+    {
+        return view('courses.show', compact('course'));
+    }
+    // cancellation of enrollment
+
+    public function cancelEnrollment($id)
+    {
+        $enrollment = Enrollment::findOrFail($id);
+
+        // Check if the enrollment was created within the last 3 days
+        if ($enrollment->created_at->diffInDays(Carbon::now()) <= 3) {
+            $enrollment->cancellation_status = 'Cancelled';
+            $enrollment->save();
+
+            return redirect()->back()->with('success', 'Enrollment cancelled successfully');
+        }
+
+        return redirect()->back()->with('error', 'Enrollment cancellation is only allowed within 3 days of enrollment');
+    }
+
+   
+
+
 
 }

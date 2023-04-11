@@ -106,8 +106,15 @@
 <script src="{{ asset('js/custom.js') }}" defer></script>
 {{-- <script src="{{ asset('js/cleave.js') }}"></script>
 <script src="{{ asset('js/cleave.min.js') }}"></script> --}} 
-
-
+<script>
+    $(document).ready(function() {
+        $('.oapplication-menu').on('click', function() {
+            $.get("{{ route('reset-applications-count') }}", function(data) {
+                console.log(data);
+            });
+        });
+    });
+</script>
 
 @stack('scripts')
 @yield('scripts')

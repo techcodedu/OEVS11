@@ -9,8 +9,6 @@
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/adminlte.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
-    
-    
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -70,6 +68,14 @@
                             </form>
                         </div>
                     </li>
+                    <!-- Add this inside the <ul class="navbar-nav"> tag -->
+                        @auth
+                            @if (Auth::user()->role === 'student')
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('student.applications') }}">My Applications</a>
+                                </li>
+                            @endif
+                        @endauth
                     @endguest
                 </ul>
             </div>

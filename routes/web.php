@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\AssessmentController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,7 +57,6 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     Route::get('/courses', [CourseControll::class, 'index'])->name('courses.index');
     Route::get('/courses/create', [CourseControll::class, 'create'])->name('courses.create');
     Route::post('/courses', [CourseControll::class, 'store'])->name('courses.store');
-    // Route::get('/courses/{course}', [CourseControll::class, 'show'])->name('courses.show');
     Route::get('/courses/{course}/edit', [CourseControll::class, 'edit'])->name('courses.edit');
     Route::put('/courses/{course}', [CourseControll::class, 'update'])->name('courses.update');
     Route::delete('/courses/{course}', [CourseControll::class, 'destroy'])->name('courses.destroy');
@@ -84,18 +84,31 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     Route::get('users', [\App\Http\Controllers\UserController::class, 'index'])->name('admin.users');
     Route::get('courseinfo', [CourseInformation::class, 'index'])->name('admin.courseinfo');
 
-    Route::get('application', [OApplication::class, 'index'])->name('admin.oapplication');
+    
 
+    // update status of online enrollment
     Route::get('/enrollment/{enrollment}', [CourseEnrollmentController::class, 'showEnrollmentDetails'])->name('admin.enrollment.show');
     Route::put('/admin/enrollments/{enrollment}', [CourseEnrollmentController::class, 'updateStatus'])->name('admin.enrollments.updateStatus');
    
+    // assessment and enrollment applicaton application list
+    Route::get('application', [OApplication::class, 'index'])->name('admin.oapplication');
+    Route::get('admin/assessment/{assessment}', [OApplication::class, 'showAssessment'])->name('admin.assessment.show');
+    // realtime update in assessment
+    Route::put('/admin/assessments/updateStatus', [CourseEnrollmentController::class, 'updateAssessmentStatus'])->name('admin.assessments.updateStatus');
+    Route::get('/assessments/{assessment}/check-schedule', [CourseEnrollmentController::class, 'checkSchedule'])->name('assessments.checkSchedule');
+
+    // notifications
+    Route::get('/reset-applications-count', 'OApplication@resetApplicationsCount')->name('reset-applications-count');
+
+    // users activate and deactivate
+    Route::post('/admin/users/{id}/toggle-activation', [UserController::class, 'toggleActivation'])->name('admin.users.toggleActivation');
 
 
-Route::get('certificate', [Certificate::class, 'index'])->name('admin.certificate');
-Route::get('reports', [Reports::class, 'index'])->name('admin.reports');
-Route::get('studentreg', [Student::class, 'registration'])->name('admin.studentregistration');
-Route::get('sprofile', [Student::class, 'profile'])->name('admin.studprofile');
-Route::get('studentprofile', [StudentPayments::class, 'index'])->name('admin.payments');
+    Route::get('certificate', [Certificate::class, 'index'])->name('admin.certificate');
+    Route::get('reports', [Reports::class, 'index'])->name('admin.reports');
+    Route::get('studentreg', [Student::class, 'registration'])->name('admin.studentregistration');
+    Route::get('sprofile', [Student::class, 'profile'])->name('admin.studprofile');
+    Route::get('studentprofile', [StudentPayments::class, 'index'])->name('admin.payments');
 });
 //   front
 Route::get('/', [FrontEndController::class, 'index'])->name('index');
@@ -111,7 +124,18 @@ Route::group(['middleware' => ['role:student']], function () {
 
      // ASSESSMENT
     Route::get('/assessment/{course}/{user}/{enrollment_type}', [AssessmentController::class, 'showAssessmentForm'])->name('assessment.application');
-    Route::post('/assessment', [AssessmentController::class, 'submitApplication'])->name('assessment.submit');
+    Route::post('/assessment/submit', [AssessmentController::class, 'submitApplication'])->name('assessment.submit');
+
+
+    Route::get('/student/applications', [Student::class, 'applications'])->name('student.applications');
+    Route::get('/courses/{course}', [CourseEnrollmentController::class, 'show'])->name('courses.show');
+
+    // assessment and enrollment cancellation
+    Route::get('/enrollments/{id}/cancel', [CourseEnrollmentController::class, 'cancelEnrollment'])->name('enrollments.cancel');
+    Route::get('/assessment_applications/{id}/cancel', [Student::class, 'cancelAssessmentApplication'])->name('assessment_applications.cancel');
+
+
+
 
 
 });
