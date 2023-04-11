@@ -443,7 +443,7 @@ td i {
                         console.log(response);
                         if (response.already_exists) {
                             // Show an alert to confirm the update
-                            if (confirm('The user has already been assigned a scholarship grant. Do you want to update it?')) {
+                            if (confirm('The use has already been assigned a scholarship grant. Do you want to update it?')) {
                                 // Make another AJAX call to update the scholarship grant
                                 forceUpdateScholarship = true;
                                 updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
