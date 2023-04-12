@@ -222,18 +222,22 @@ class CourseEnrollmentController extends Controller
         $enrollment->status = $newStatus;
 
         // Update the "scholarship_grant" field when the status is "enrolled"
-        if ($newStatus === 'enrolled' && !is_null($enrollment->scholarship_grant) && !$forceUpdateScholarship) {
-            echo "Already exists condition triggered" . PHP_EOL;
-            return response()->json(['success' => false, 'already_exists' => true]);
-        } else {
-            if ($newStatus === 'enrolled') {
+        if ($newStatus === 'enrolled') {
+            if (is_null($enrollment->scholarship_grant) || $forceUpdateScholarship) {
                 $enrollment->scholarship_grant = $scholarshipGrant;
+            } else {
+                return response()->json(['success' => false], 400); // Return a 400 Bad Request if the scholarship already exists
             }
-            $enrollment->save();
-            return response()->json(['success' => true, 'already_exists' => false]);
         }
+
+        $enrollment->save();
+        return response()->json(['success' => true]);
     }
 
+    public function checkScholarship(Enrollment $enrollment)
+    {
+        return response()->json(['has_scholarship' => !empty($enrollment->scholarship_grant)]);
+    }
 
 
     // method to realtime update status of assessment

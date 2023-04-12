@@ -417,17 +417,35 @@ td i {
                 }
 
                 $('#enrollmentStatusModal').modal('show');
-
                 // Set the event listener for the "Confirm Update" button
                 $('#confirmEnrollmentUpdate').off('click').on('click', function () {
                     var selectedScholarship = newStatus === 'enrolled' ? $('select[name="scholarship"]').val() : null;
                     var forceUpdateScholarship = false;
 
-                    updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
-                    $('#enrollmentStatusModal').modal('hide');
+                    if (newStatus === 'enrolled') {
+                        // Check for an existing scholarship before calling updateEnrollment
+                        $.ajax({
+                            url: "{{ route('enrollments.checkScholarship', 'ENROLLMENT_ID') }}".replace('ENROLLMENT_ID', enrollmentId),
+                            type: 'GET',
+                            success: function(response) {
+                                if (response.has_scholarship) {
+                                    if (confirm('The user has already been assigned a scholarship grant. Do you want to update it?')) {
+                                        forceUpdateScholarship = true;
+                                    }
+                                }
+                                updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
+                            },
+                            error: function(response) {
+                                console.log("Error checking scholarship:", response);
+                            }
+                        });
+                    } else {
+                        // Call updateEnrollment directly if the new status is not "enrolled"
+                        updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
+                    }
                 });
-            });
 
+            });
             function updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship) {
                 $.ajax({
                     url: '/admin/enrollments/updateStatus',
@@ -442,11 +460,14 @@ td i {
                     success: function (response) {
                         console.log(response);
                         if (response.already_exists) {
-                            // Show an alert to confirm the update
-                            if (confirm('The use has already been assigned a scholarship grant. Do you want to update it?')) {
-                                // Make another AJAX call to update the scholarship grant
-                                forceUpdateScholarship = true;
-                                updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
+                            console.log("Already exists condition triggered");
+                            // Check if scholarship_grant field has a value before prompting for update
+                            if (scholarship_grant !== '' && confirm('The user has already been assigned a scholarship grant. Do you want to update it?')) {
+                            // Make another AJAX call to update the scholarship grant
+                            forceUpdateScholarship = true;
+                            updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
+                            } else {
+                            console.log("Update cancelled by user.");
                             }
                         } else {
                             console.log("Enrollment status updated successfully.");
@@ -454,23 +475,23 @@ td i {
                             $('#messageModal').modal('show');
                             // Add or remove the 'green-option' class based on the new status
                             if (newStatus === 'enrolled') {
-                                enrollmentSelect.addClass('green-option');
+                            enrollmentSelect.addClass('green-option');
                             } else {
-                                enrollmentSelect.removeClass('green-option');
+                            enrollmentSelect.removeClass('green-option');
                             }
                         }
                     },
                     error: function (response) {
-                        console.log("Error updating enrollment status:", response.responseJSON.error);
-                                    var errorMessage = 'Error updating enrollment status.';
-                        if (response.status === 400) {
-                            errorMessage = response.responseJSON.error;
-                        }
-                        $('#messageText').text(errorMessage);
-                        $('#messageModal').modal('show');
-                        // Revert the status change in the select element
-                        enrollmentSelect.val(enrollmentSelect.find('option[selected]').val());
+                    console.log("Error updating enrollment status:", response);
+                    var errorMessage = 'Error updating enrollment status.';
+                    if (response.status === 400) {
+                        errorMessage = response.responseJSON.error;
                     }
+                    $('#messageText').text(errorMessage);
+                    $('#messageModal').modal('show');
+                    // Revert the status change in the select element
+                    enrollmentSelect.val(enrollmentSelect.find('option[selected]').val());
+                }
                 });
 
                 $('#enrollmentStatusModal').on('hidden.bs.modal', function () {
