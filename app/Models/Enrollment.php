@@ -82,5 +82,10 @@ class Enrollment extends Model
 
         return $enrollment;
     }
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
     
 }

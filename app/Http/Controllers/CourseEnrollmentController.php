@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Notifications\EnrollmentStatusUpdated;
 use App\Models\AssessmentApplication; 
-use Illuminate\Support\Facades\Log;
 use App\Models\AssessmentSchedule;
+use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
+
 
 
 use Carbon\Carbon;
@@ -120,9 +122,13 @@ class CourseEnrollmentController extends Controller
         ]);
         $enrollment->personalInformation()->save($personalInformation);
 
-        // Redirect to the next step in the enrollment process
-        return redirect()->route('enrollment.step3', ['enrollment' => $enrollment]);
+          // Redirect to the payment form for regular_training or step 3 for other enrollment types
 
+        if ($enrollment->enrollment_type === 'regular_training') {
+            return redirect()->route('enrollment.payment', ['enrollment' => $enrollment]);
+        } else {
+            return redirect()->route('enrollment.step3', ['enrollment' => $enrollment]);
+        }
     }
 
     public function storeStep3(Request $request, Enrollment $enrollment)
@@ -184,7 +190,13 @@ class CourseEnrollmentController extends Controller
             'scholarship_grant' => 'nullable|string|max:255'
         ]);
 
-        $enrollment = Enrollment::enroll($user, Course::find($courseId), $validatedData['enrollment_type']);
+        $course = Course::find($courseId);
+        if (!$course) {
+            return redirect()->back()->withErrors(['message' => 'Course not found.']);
+        }
+
+        $enrollment = Enrollment::enroll($user, $course, $validatedData['enrollment_type']);
+
         $enrollment->status = Enrollment::STATUS_IN_REVIEW;
         $enrollment->save();
 
@@ -203,7 +215,55 @@ class CourseEnrollmentController extends Controller
         return view('admin.enrollment.show', compact('enrollment'));
     }
 
-     // method to update the status field of the enrollment
+    // frontend for the payment of regular training
+public function storePayment(Request $request, Enrollment $enrollment)
+{
+    $request->validate([
+        'payment_method' => 'required|string',
+        'payment_schedule' => 'required|string',
+        'due_date' => 'nullable|date',
+        'enrollment_type' => 'required|in:scholarship,regular_training,assessment', // Add this line
+    ]);
+
+    Log::info('Validation passed', ['request' => $request->all()]);
+
+    $payment = Payment::create([
+        'user_id' => Auth::user()->id,
+        'enrollment_id' => $enrollment->id,
+        'amount' => 0, // updated later by the administrator
+        'status' => 'pending',
+        'payment_method' => $request->input('payment_method'),
+        'payment_schedule' => $request->input('payment_schedule'),
+        'due_date' => $request->input('due_date'),
+        'registration_paid' => 0,
+    ]);
+
+    Log::info('Payment instance created and saved');
+
+    $enrollment->payment()->save($payment);
+
+    Log::info('Payment saved');
+
+    // Return a JSON response instead of redirecting
+    return response()->json([
+        'success' => true,
+        'message' => 'Payment saved',
+        'enrollment' => $enrollment
+    ]);
+}
+
+    public function showPaymentForm(Enrollment $enrollment)
+    {
+        Log::info('showPaymentForm method called', ['enrollment' => $enrollment->toArray()]);
+
+        $paymentMethods = ['bank_transfer', 'gcash', 'over_the_counter'];
+        $paymentSchedules = ['weekly', 'monthly', 'quarterly', 'one_time_payment'];
+
+        return view('enrollment.payment', compact('enrollment', 'paymentMethods', 'paymentSchedules'));
+    }
+
+
+     // method to update the status field of the enrollment in the ADMIN part
     public function updateStatus(Request $request)
     {
         $enrollment = Enrollment::findOrFail($request->enrollment);
@@ -214,7 +274,6 @@ class CourseEnrollmentController extends Controller
         // Directly return the response from updateEnrollmentStatus
         return $this->updateEnrollmentStatus($enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship);
     }
-
 
     // method to update the status field and scholarship_grant field of the enrollment
     private function updateEnrollmentStatus(Enrollment $enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship)
