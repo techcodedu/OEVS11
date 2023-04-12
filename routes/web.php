@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\UserController;
+use App\Models\Enrollment;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +103,9 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
 
     // users activate and deactivate
     Route::post('/admin/users/{id}/toggle-activation', [UserController::class, 'toggleActivation'])->name('admin.users.toggleActivation');
+
+    // use to validate if shcolarship grant has already set
+    Route::get('/enrollments/{enrollment}/check-scholarship', [CourseEnrollmentController::class, 'checkScholarship'])->name('enrollments.checkScholarship');
 
 
     Route::get('certificate', [Certificate::class, 'index'])->name('admin.certificate');
