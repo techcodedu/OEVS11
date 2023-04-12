@@ -26,15 +26,20 @@
                             </span>
                         </td>
                         <!-- Update the Course Enrollments Actions -->
-                        <td>
+                       <td>
                             @if ($enrollment->created_at->diffInDays(\Carbon\Carbon::now()) <= 3 && $enrollment->status !== 'enrolled')
                                 <a href="{{ route('enrollments.cancel', $enrollment->id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this enrollment?')">Cancel Enrollment</a>
                             @elseif ($enrollment->status === 'enrolled')
                                 <button class="btn btn-success btn-sm" disabled>You are accepted</button>
+                                @if (!empty($enrollment->scholarship_grant))
+                                    <br>
+                                    <small>Scholarship: {{ $enrollment->scholarship_grant }}</small>
+                                @endif
                             @else
                                 <button class="btn btn-danger btn-sm" disabled>Cancel Enrollment</button>
                             @endif
                         </td>
+
                         </tr>
                     @empty
                         <tr>

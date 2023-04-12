@@ -114,16 +114,16 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     Route::get('sprofile', [Student::class, 'profile'])->name('admin.studprofile');
     Route::get('studentprofile', [StudentPayments::class, 'index'])->name('admin.payments');
 });
-//   front
-Route::get('/', [FrontEndController::class, 'index'])->name('index');
-Route::get('/availablecourses', [FrontEndController::class, 'index'])->name('availablecourses');
-Route::get('/about', [FrontEndController::class, 'about'])->name('about');
-Route::get('/front/signin', [FrontEndController::class, 'index'])->name('front/signin');
+    //   front
+    Route::get('/', [FrontEndController::class, 'index'])->name('index');
+    Route::get('/availablecourses', [FrontEndController::class, 'index'])->name('availablecourses');
+    Route::get('/about', [FrontEndController::class, 'about'])->name('about');
+    Route::get('/front/signin', [FrontEndController::class, 'index'])->name('front/signin');
 
-Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
-Route::put('profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::put('profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-Route::group(['middleware' => ['role:student']], function () {
+    Route::group(['middleware' => ['role:student']], function () {
     Route::get('/enroll/{course}', [CourseEnrollmentController::class, 'enroll'])->name('enroll');
 
      // ASSESSMENT
@@ -138,43 +138,24 @@ Route::group(['middleware' => ['role:student']], function () {
     Route::get('/enrollments/{id}/cancel', [CourseEnrollmentController::class, 'cancelEnrollment'])->name('enrollments.cancel');
     Route::get('/assessment_applications/{id}/cancel', [Student::class, 'cancelAssessmentApplication'])->name('assessment_applications.cancel');
 
+    Route::post('/enrollment/{courseId}/{userId}', [CourseEnrollmentController::class, 'storeEnrollment'])->name('enrollment.store');
+    Route::get('/enrollment/{courseId}/{userId}/{enrollmentType}', [CourseEnrollmentController::class, 'enroll'])->name('enrollment.enroll');
+    Route::get('/courses/{course}/enrollment/{user}', [CourseEnrollmentController::class, 'showEnrollmentForm'])->name('enrollment.form');
+    Route::post('/enrollment/step1/{courseId}/{userId}', [CourseEnrollmentController::class, 'submitStep1'])->name('enrollment.step1.submit');
+    Route::get('/enrollment/step2/{enrollment}', [CourseEnrollmentController::class, 'step2'])->name('enrollment.step2');
+    Route::post('/enrollment/step2/process/{enrollment}', [CourseEnrollmentController::class, 'storeStep2'])->name('enrollment.step2.submit');
+    Route::get('/enrollment/step3/{enrollment}', [CourseEnrollmentController::class, 'showStep3Form'])->name('enrollment.step3');
+    Route::post('/enrollment/step3/process/{enrollment}', [CourseEnrollmentController::class, 'storeStep3'])->name('enrollment.step3.submit');
+    Route::get('/enrollment/complete/{enrollment}', [CourseEnrollmentController::class, 'complete'])->name('enrollment.complete');
+
+    // payment
+    Route::get('/enrollment/{enrollment}/payment', [CourseEnrollmentController::class, 'showPaymentForm'])->name('enrollment.payment');
+    Route::post('/enrollment/{enrollment}/submitted', [CourseEnrollmentController::class, 'storePayment'])->name('enrollment.payment.store');
 
 
+   
 
 
 });
 Route::get('/courses/category/{id}', [FrontEndController::class, 'category'])->name('courses.category');
 
-// Route::post('/enrollment/{courseId}/{userId}', [CourseEnrollmentController::class, 'storeEnrollment'])->name('enrollment.store');
-// Route::post('/enrollment/step3/{enrollment}', [CourseEnrollmentController::class, 'storeStep3'])->name('enrollment.step3');
-
-// Route::get('/enrollment/{courseId}/{userId}/{enrollmentType}', [CourseEnrollmentController::class, 'enroll'])->name('enrollment.enroll');
-
-// Route::get('/courses/{course}/enrollment/{user}', [CourseEnrollmentController::class, 'showEnrollmentForm'])
-//     ->name('enrollment.form');
-
-// Route::post('/enrollment/step1/{course}/{user}', [CourseEnrollmentController::class, 'submitStep1'])->name('enrollment.step1.submit');
-
-// // step 2 enrollment route
-// Route::post('/enrollment/step2/process/{enrollment}', [CourseEnrollmentController::class, 'storeStep2'])->name('enrollment.step2.submit');
-// Route::get('/enrollment/step2/{enrollment}', [CourseEnrollmentController::class, 'step2'])->name('enrollment.step2');
-
-// Route::post('/enrollment/{courseId}/{userId}', [CourseEnrollmentController::class, 'storeEnrollment'])->name('enrollment.store');
-// Route::get('/enrollment/{courseId}/{userId}/{enrollmentType}', [CourseEnrollmentController::class, 'enroll'])->name('enrollment.enroll');
-// Route::get('/courses/{course}/enrollment/{user}', [CourseEnrollmentController::class, 'showEnrollmentForm'])->name('enrollment.form');
-// Route::post('/enrollment/step1/{courseId}/{userId}', [CourseEnrollmentController::class, 'submitStep1'])->name('enrollment.step1.submit');
-// Route::get('/enrollment/step2/{enrollment}', [CourseEnrollmentController::class, 'step2'])->name('enrollment.step2');
-// Route::post('/enrollment/step2/process/{enrollment}', [CourseEnrollmentController::class, 'storeStep2'])->name('enrollment.step2.submit');
-// Route::get('/enrollment/step3/{enrollment}', [CourseEnrollmentController::class, 'showStep3Form'])->name('enrollment.step3');
-
-// Route::post('/enrollment/step3/process/{enrollment}', [CourseEnrollmentController::class, 'storeStep3'])->name('enrollment.step3.submit');
-// Route::get('/enrollment/complete/{enrollment}', [CourseEnrollmentController::class, 'complete'])->name('enrollment.complete');
-Route::post('/enrollment/{courseId}/{userId}', [CourseEnrollmentController::class, 'storeEnrollment'])->name('enrollment.store');
-Route::get('/enrollment/{courseId}/{userId}/{enrollmentType}', [CourseEnrollmentController::class, 'enroll'])->name('enrollment.enroll');
-Route::get('/courses/{course}/enrollment/{user}', [CourseEnrollmentController::class, 'showEnrollmentForm'])->name('enrollment.form');
-Route::post('/enrollment/step1/{courseId}/{userId}', [CourseEnrollmentController::class, 'submitStep1'])->name('enrollment.step1.submit');
-Route::get('/enrollment/step2/{enrollment}', [CourseEnrollmentController::class, 'step2'])->name('enrollment.step2');
-Route::post('/enrollment/step2/process/{enrollment}', [CourseEnrollmentController::class, 'storeStep2'])->name('enrollment.step2.submit');
-Route::get('/enrollment/step3/{enrollment}', [CourseEnrollmentController::class, 'showStep3Form'])->name('enrollment.step3');
-Route::post('/enrollment/step3/process/{enrollment}', [CourseEnrollmentController::class, 'storeStep3'])->name('enrollment.step3.submit');
-Route::get('/enrollment/complete/{enrollment}', [CourseEnrollmentController::class, 'complete'])->name('enrollment.complete');
