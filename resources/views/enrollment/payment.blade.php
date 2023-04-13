@@ -10,7 +10,7 @@
                     </div>
                     <div class="card-body">
                         <!-- End of debugging information -->
-                        <form action="{{ route('enrollment.payment.store', $enrollment) }}" method="POST">
+                        <form action="{{ route('enrollment.payment.store', $enrollment) }}" method="POST" id="payment-form" data-enrollment-id="{{ $enrollment->id }}">
                             @csrf
                              <input type="hidden" name="enrollment_type" value="{{ $enrollment->enrollment_type }}">
 
@@ -49,7 +49,8 @@
                                 <p>The registration fee is 500 pesos.</p>
                             </div>
 
-                            <button type="submit" class="btn btn-primary">Submit</button>
+                           <button type="submit" id="submit-payment" data-enrollment-id="{{ $enrollment->id }}">Submit Payment</button>
+
                         </form>
                     </div>
                 </div>
@@ -58,57 +59,35 @@
     <!-- Enrollment payment view file -->
 
     @endsection
-    @section('scripts')
-        <script>
-         document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(e) {
-          e.preventDefault();
-          console.log('Submit event captured');
-          const formData = new FormData(form);
-          console.log('Values:');
-          for (const [name, value] of formData) {
-            console.log(`${name}: ${value}`);
-          }
-          fetch(form.action, {
-              method: form.method,
-              headers: {
-                  'Accept': 'application/json', // Add this line to make sure the server knows we want JSON
-                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content // Add this line to include the CSRF token
-              },
-              body: formData
-          })
-          .then(response => {
-              if (!response.ok) {
-                  return response.json().then(validationErrors => {
-                      console.error('Validation errors:', validationErrors);
-                      throw new Error('Network response was not ok');
-                  });
-              }
-              return response.json();
-          })
-          .then(data => {
-              console.log(data); // Log the received data to the console
-              if (data.success) {
-                  // Redirect to the next page if the payment was saved successfully
-                  window.location.href = "{{ route('enrollment.step3', $enrollment) }}";
-              } else {
-                  console.error('Payment not saved');
-              }
-          })
-          .catch(error => {
-              console.error('Error:', error);
-              alert('There was an error processing your payment. Please try again later.');
-          })
+@section('scripts')
+    <script>
+  document.querySelector('#submit-payment').addEventListener('click', async function savePayment(e) {
+    e.preventDefault();
 
-          .finally(() => {
-              form.reset(); // Reset the form after submission
-          });
+    const formElement = e.target.closest('form');
+    const formData = new FormData(formElement);
 
-        });
+    try {
+      const enrollmentId = e.target.dataset.enrollmentId;
+      const response = await axios.post(`/enrollment/${enrollmentId}/submitted`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
       });
 
+      const data = response.data;
 
-        </script>
-    @endsection
+      if (data.success) {
+        alert(data.message);
+      } else {
+        alert("Error saving payment");
+      }
+    } catch (error) {
+      console.error("There was a problem with the axios request:", error);
+    }
+  });
+
+    </script>
+@endsection
 

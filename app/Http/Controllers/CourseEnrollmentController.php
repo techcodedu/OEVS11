@@ -15,6 +15,7 @@ use App\Models\AssessmentApplication;
 use App\Models\AssessmentSchedule;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Response; // Use this line at the top of your controller
 
 
 
@@ -244,12 +245,13 @@ public function storePayment(Request $request, Enrollment $enrollment)
 
     Log::info('Payment saved');
 
-    // Return a JSON response instead of redirecting
-    return response()->json([
-        'success' => true,
-        'message' => 'Payment saved',
-        'enrollment' => $enrollment
-    ]);
+return response("<!-- " . json_encode([
+    'success' => true,
+    'message' => 'Payment saved',
+    'enrollment' => $enrollment,
+]) . " -->", 200)->header('Content-Type', 'text/html');
+
+
 }
 
     public function showPaymentForm(Enrollment $enrollment)
