@@ -150,8 +150,10 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
 
     // payment
     Route::get('/enrollment/{enrollment}/payment', [CourseEnrollmentController::class, 'showPaymentForm'])->name('enrollment.payment');
-    Route::post('/enrollment/{enrollment}/submitted', [CourseEnrollmentController::class, 'storePayment'])->name('enrollment.payment.store');
+    Route::post('/enrollment/{enrollment}/payment/save', [CourseEnrollmentController::class, 'storePayment'])->name('enrollment.payment.save');
 
+    // email view details of enrollment
+    Route::get('/enrollment/details/{enrollment}', [CourseEnrollmentController::class, 'emailLinkDetails'])->name('enrollment.details');
 
    
 

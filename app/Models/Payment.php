@@ -12,23 +12,24 @@ class Payment extends Model
     protected $fillable = [
         'user_id',
         'enrollment_id',
-        'amount',
         'payment_method',
         'payment_schedule',
-        'due_date',
-        'registration_paid',
-        'status',
+        'registration_is_paid',
     ];
 
+    protected $casts = [
+        'registration_is_paid' => 'boolean',
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function payments()
+     public function enrollment()
     {
-        return $this->hasMany(Payment::class);
+        return $this->belongsTo(Enrollment::class);
     }
-
 }
