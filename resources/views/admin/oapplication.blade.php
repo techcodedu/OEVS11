@@ -70,11 +70,6 @@ td i {
     margin-bottom: 1rem;
 }
 
-
-
-
-
-
 </style>
     <!-- Content Header (Page header) -->
     <div class="content-header">
@@ -96,11 +91,11 @@ td i {
                     <div class="card">
                         <div class="card-header">
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <h3 class="card-title custom-card-title">Enrollment</h3>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <!-- filterform -->
                                     <form method="GET" action="" class="shared-filter-form enrollment-filter-form">
                                         <div class="d-flex align-items-center justify-content-end">
@@ -120,6 +115,14 @@ td i {
                                                     <option value="inReview">In Review</option>
                                                     <option value="inProgress">In Progress</option>
                                                     <option value="enrolled">Enrolled</option>
+                                                </select>
+                                            </div>
+                                           <div class="form-group">
+                                                <label for="enrollment_type" class="mr-1 d-inline-block">Enrollment Type</label>
+                                                <select name="enrollment_type" id="enrollment_type" class="form-control form-control-sm d-inline-block">
+                                                    <option value="">All Types</option>
+                                                    <option value="regular_training">Regular Training</option>
+                                                    <option value="scholarship">Scholarship</option>
                                                 </select>
                                             </div>
                                             <div class="form-group">
@@ -266,12 +269,9 @@ td i {
     </div>
     <!-- /.content -->
 
-
-
-
     <!-- Modal for enrollment-->
     <div class="modal fade" id="enrollmentModal" tabindex="-1" role="dialog" aria-labelledby="enrollmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="enrollmentModalLabel">Enrollment Details</h5>
@@ -279,7 +279,7 @@ td i {
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" style="max-height: 500px;">
+                <div class="modal-body p-4" style="max-height: 500px; overflow-y: auto;">
                     <div id="enrollmentDetails"></div>
                 </div>
                 <div class="modal-footer">
@@ -288,6 +288,7 @@ td i {
             </div>
         </div>
     </div>
+
    {{-- modal for  --}}
    <!-- Assessment Modal -->
     <div class="modal fade" id="assessmentModal" tabindex="-1" role="dialog" aria-labelledby="assessmentModalLabel" aria-hidden="true">
@@ -421,7 +422,6 @@ td i {
                 $('#confirmEnrollmentUpdate').off('click').on('click', function () {
                     var selectedScholarship = newStatus === 'enrolled' ? $('select[name="scholarship"]').val() : null;
                     var forceUpdateScholarship = false;
-
                     if (newStatus === 'enrolled') {
                         // Check for an existing scholarship before calling updateEnrollment
                         $.ajax({
@@ -644,71 +644,44 @@ td i {
     });
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Enrollment table filtering
-        document.querySelector('.enrollment-filter-form').addEventListener('submit', function (event) {
-            event.preventDefault();
+document.addEventListener('DOMContentLoaded', function () {
+    // Enrollment table filtering
+    document.querySelector('.enrollment-filter-form').addEventListener('submit', function (event) {
+        event.preventDefault();
 
-            const courseNameFilter = document.querySelector('#enrollment_course_name').value;
-            const statusFilter = document.querySelector('#enrollment_status').value;
-            const table = document.querySelector('#enrollment-table');
-            const rows = table.querySelectorAll('tbody tr:not(#enrollment-no-records-row)');
-            const noRecordsRow = document.querySelector('#enrollment-no-records-row');
-            let hasVisibleRows = false;
+        const courseNameFilter = document.querySelector('#enrollment_course_name').value;
+        const statusFilter = document.querySelector('#enrollment_status').value;
+        const enrollmentTypeFilter = document.querySelector('#enrollment_type').value;
+        const table = document.querySelector('#enrollment-table');
+        const rows = table.querySelectorAll('tbody tr:not(#enrollment-no-records-row)');
+        const noRecordsRow = document.querySelector('#enrollment-no-records-row');
+        let hasVisibleRows = false;
 
-            rows.forEach(row => {
-                const courseName = row.querySelector('td:nth-child(3)').textContent;
-                const status = row.querySelector('td:nth-child(5) select').value;
+        rows.forEach(row => {
+            const courseName = row.querySelector('td:nth-child(3)').textContent.trim();
+            const status = row.querySelector('td:nth-child(5) select').value;
+            const enrollmentType = row.querySelector('td:nth-child(4)').textContent.trim();
 
-                if ((courseNameFilter === '' || courseNameFilter === courseName) &&
-                    (statusFilter === '' || statusFilter === status)) {
-                    row.style.display = '';
-                    hasVisibleRows = true;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+            console.log('Filters: ' + enrollmentTypeFilter);
+            console.log('Row values:', courseName, status, enrollmentType);
 
-            if (hasVisibleRows) {
-                noRecordsRow.style.display = 'none';
+            if ((courseNameFilter === '' || courseNameFilter === courseName) &&
+                (statusFilter === '' || statusFilter === status) &&
+                (enrollmentTypeFilter === '' || enrollmentTypeFilter === enrollmentType)) {
+                row.style.display = '';
+                hasVisibleRows = true;
             } else {
-                noRecordsRow.style.display = '';
+                row.style.display = 'none';
             }
         });
+
+        if (hasVisibleRows) {
+            noRecordsRow.style.display = 'none';
+        } else {
+            noRecordsRow.style.display = '';
+        }
     });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Enrollment table filtering
-        document.querySelector('.enrollment-filter-form').addEventListener('submit', function (event) {
-            event.preventDefault();
+});
 
-            const courseNameFilter = document.querySelector('#enrollment_course_name').value;
-            const statusFilter = document.querySelector('#enrollment_status').value;
-            const table = document.querySelector('#enrollment-table');
-            const rows = table.querySelectorAll('tbody tr:not(#enrollment-no-records-row)');
-            const noRecordsRow = document.querySelector('#enrollment-no-records-row');
-            let hasVisibleRows = false;
-
-            rows.forEach(row => {
-                const courseName = row.querySelector('td:nth-child(3)').textContent.trim(); // Add .trim() to remove whitespace
-                const status = row.querySelector('td:nth-child(5) select').value;
-
-                if ((courseNameFilter === '' || courseNameFilter === courseName) &&
-                    (statusFilter === '' || statusFilter === status)) {
-                    row.style.display = '';
-                    hasVisibleRows = true;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            if (hasVisibleRows) {
-                noRecordsRow.style.display = 'none';
-            } else {
-                noRecordsRow.style.display = '';
-            }
-        });
-    });
 </script>
 @endsection

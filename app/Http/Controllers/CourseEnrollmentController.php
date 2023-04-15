@@ -10,11 +10,15 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use App\Notifications\EnrollmentStatusUpdated;
 use App\Models\AssessmentApplication; 
 use App\Models\AssessmentSchedule;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EnrollmentStatusUpdated;
 use Illuminate\Support\Facades\Log;
+
+
+
 use Illuminate\Http\Response; // Use this line at the top of your controller
 
 
@@ -26,22 +30,25 @@ class CourseEnrollmentController extends Controller
 {
   
     //creating new enrollment
-    public function enroll($courseId, $userId, $enrollmentType)
+    public function enroll(Request $request, $courseId, $userId)
     {
         // Check if the user is authenticated
         if (!Auth::check()) {
-            // If the user is not authenticated, store the course ID and enrollment type in the session and redirect to the login page
-            session(['enrollment_course_id' => $courseId, 'enrollment_type' => $enrollmentType]);
+            // If the user is not authenticated, store the course ID in the session and redirect to the login page
+            session(['enrollment_course_id' => $courseId]);
             return redirect()->route('login');
         }
+
+        $validatedData = $request->validate([
+            'enrollment_type' => ['required', Rule::in(['scholarship', 'regular_training', 'assessment'])],
+        ]);
 
         $course = Course::findOrFail($courseId);
         $user = User::findOrFail($userId);
 
-        $enrollment = Enrollment::enroll($user, $course, $enrollmentType);
+        $enrollment = Enrollment::enroll($user, $course, $validatedData['enrollment_type']);
 
-        return redirect()->route('enrollment.step2', ['enrollment' => $enrollment->id]);
-
+        return redirect()->route('enrollment.step2', ['enrollment' => $enrollment]);
     }
 
     // retrieves the course and user
@@ -59,24 +66,7 @@ class CourseEnrollmentController extends Controller
         $enrollmentTypes = Enrollment::pluck('enrollment_type')->toArray();
 
         return view('enrollment.form', compact('course', 'user', 'enrollmentTypes', 'courseId'));
-
     }
-
-    // step 1
-    public function submitStep1(Request $request, $courseId, $userId, $enrollmentType)
-    {
-        $validatedData = $request->validate([
-            'enrollment_type' => ['required', Rule::in(['scholarship', 'regular_training', 'assessment'])],
-        ]);
-
-        $course = Course::findOrFail($courseId);
-        $user = User::findOrFail($userId);
-
-        $enrollment = Enrollment::enroll($user, $course, $enrollmentType);
-
-        return redirect()->route('enrollment.step2', ['enrollment' => $enrollment]);
-    }
-
     public function step2(Enrollment $enrollment)
     {
 
@@ -123,7 +113,7 @@ class CourseEnrollmentController extends Controller
         ]);
         $enrollment->personalInformation()->save($personalInformation);
 
-          // Redirect to the payment form for regular_training or step 3 for other enrollment types
+            // Redirect to the payment form for regular_training or step 3 for other enrollment types
 
         if ($enrollment->enrollment_type === 'regular_training') {
             return redirect()->route('enrollment.payment', ['enrollment' => $enrollment]);
@@ -131,6 +121,38 @@ class CourseEnrollmentController extends Controller
             return redirect()->route('enrollment.step3', ['enrollment' => $enrollment]);
         }
     }
+
+    public function showPaymentForm(Enrollment $enrollment)
+    {
+        $course = $enrollment->course;
+        $user = $enrollment->user;
+
+        return view('enrollment.payment', compact('course', 'user', 'enrollment'));
+    }
+    
+    public function storePayment(Request $request, Enrollment $enrollment)
+    {
+        $validatedData = $request->validate([
+            'payment_method' => ['required', Rule::in(['GCASH', 'over_the_counter', 'bank_transfer'])],
+            'payment_schedule' => ['required', Rule::in(['weekly_installment', 'last_day_one_time'])],
+        ]);
+
+        $payment = new Payment([
+            'payment_method' => $validatedData['payment_method'],
+            'payment_schedule' => $validatedData['payment_schedule'],
+            'user_id' => $enrollment->user_id,
+            'enrollment_id' => $enrollment->id,
+        ]);
+
+        $enrollment->payment()->save($payment);
+
+        // Update the 'registration_is_paid' field
+        $enrollment->update(['registration_is_paid' => true]);
+
+        return redirect()->route('enrollment.step3', ['enrollment' => $enrollment]);
+    }
+
+
 
     public function storeStep3(Request $request, Enrollment $enrollment)
     {
@@ -211,61 +233,30 @@ class CourseEnrollmentController extends Controller
     public function showEnrollmentDetails(Enrollment $enrollment)
     {
         // Load the related data for the enrollment
-        $enrollment->load('personalInformation', 'course', 'enrollmentDocuments');
+        $enrollment->load('personalInformation', 'course', 'enrollmentDocuments', 'payment');
 
         return view('admin.enrollment.show', compact('enrollment'));
     }
 
-    // frontend for the payment of regular training
-public function storePayment(Request $request, Enrollment $enrollment)
-{
-    $request->validate([
-        'payment_method' => 'required|string',
-        'payment_schedule' => 'required|string',
-        'due_date' => 'nullable|date',
-        'enrollment_type' => 'required|in:scholarship,regular_training,assessment', // Add this line
-    ]);
-
-    Log::info('Validation passed', ['request' => $request->all()]);
-
-    $payment = Payment::create([
-        'user_id' => Auth::user()->id,
-        'enrollment_id' => $enrollment->id,
-        'amount' => 0, // updated later by the administrator
-        'status' => 'pending',
-        'payment_method' => $request->input('payment_method'),
-        'payment_schedule' => $request->input('payment_schedule'),
-        'due_date' => $request->input('due_date'),
-        'registration_paid' => 0,
-    ]);
-
-    Log::info('Payment instance created and saved');
-
-    $enrollment->payment()->save($payment);
-
-    Log::info('Payment saved');
-
-return response("<!-- " . json_encode([
-    'success' => true,
-    'message' => 'Payment saved',
-    'enrollment' => $enrollment,
-]) . " -->", 200)->header('Content-Type', 'text/html');
-
-
-}
-
-    public function showPaymentForm(Enrollment $enrollment)
+    public function emailLinkDetails($enrollmentId)
     {
-        Log::info('showPaymentForm method called', ['enrollment' => $enrollment->toArray()]);
+        $enrollment = Enrollment::where('id', $enrollmentId)
+                                ->where('user_id', Auth::id())
+                                ->firstOrFail();
 
-        $paymentMethods = ['bank_transfer', 'gcash', 'over_the_counter'];
-        $paymentSchedules = ['weekly', 'monthly', 'quarterly', 'one_time_payment'];
-
-        return view('enrollment.payment', compact('enrollment', 'paymentMethods', 'paymentSchedules'));
+        return view('student.enrollment_details', compact('enrollment'));
     }
 
+    public function emailLinktoEnrollmentDetails($enrollmentId)
+    {
+        $enrollment = Enrollment::where('id', $enrollmentId)
+                                ->where('user_id', Auth::id())
+                                ->firstOrFail();
 
-     // method to update the status field of the enrollment in the ADMIN part
+        return view('student.enrollment_details', compact('enrollment'));
+    }
+
+       // method to update the status field of the enrollment in the ADMIN part
     public function updateStatus(Request $request)
     {
         $enrollment = Enrollment::findOrFail($request->enrollment);
@@ -292,6 +283,13 @@ return response("<!-- " . json_encode([
         }
 
         $enrollment->save();
+
+        // Send the email notification when the status is updated to "enrolled"
+        if ($newStatus === 'enrolled') {
+            $enrollmentUrl = url('/enrollment/' . $enrollment->id); // Replace with the actual enrollment URL
+            Mail::to($enrollment->user->email)->send(new EnrollmentStatusUpdated($enrollment, $enrollmentUrl));
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -337,17 +335,6 @@ return response("<!-- " . json_encode([
         return response()->json(['has_schedule' => $assessment->schedule !== null]);
     }
 
-
-
-    //  notification of enrollment status
-    public function sendEnrollmentStatusUpdateNotification(Enrollment $enrollment, $newStatus)
-    {
-        $enrollment->status = $newStatus;
-        $enrollment->save();
-
-        $user = $enrollment->user;
-        $user->notify(new EnrollmentStatusUpdated($enrollment));
-    }
     public function show(Course $course)
     {
         return view('courses.show', compact('course'));

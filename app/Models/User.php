@@ -75,9 +75,6 @@ class User extends Authenticatable
     {
         return ['admin', 'student', 'inactive_student'];
     }
-    public function payments()
-    {
-        return $this->hasMany(Payment::class);
-    }
+
 
 }

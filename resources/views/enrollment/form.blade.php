@@ -13,8 +13,6 @@
                     {{-- <form method="POST" action="{{ route('enrollment.step1.submit', ['course' => $courseId, 'user' => Auth::id()]) }}"> --}}
                         {{-- <form method="POST" action="{{ route('enrollment.step1.submit', ['courseId' => $course->id, 'userId' => auth()->id()]) }}"> --}}
                             <form method="POST" action="{{ route('enrollment.store', [$course->id, $user->id]) }}">
-
-
                         @csrf
                         <input type="hidden" name="course" value="{{ $course->id }}">
                         <input type="hidden" name="user" value="{{ Auth::id() }}">
