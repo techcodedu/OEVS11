@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Certificate;
 use App\Http\Controllers\CourseControll;
 use App\Http\Controllers\CourseEnrollmentController;
+use App\Http\Controllers\TrainingScheduleController;
 use App\Http\Controllers\CourseInformation;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FrontEndController;
@@ -106,6 +107,19 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
 
     // use to validate if shcolarship grant has already set
     Route::get('/enrollments/{enrollment}/check-scholarship', [CourseEnrollmentController::class, 'checkScholarship'])->name('enrollments.checkScholarship');
+
+     //route to training schedule
+    Route::get('/training-schedules', [TrainingScheduleController::class, 'index'])->name('training-schedules.index');
+
+    // admin set for the schedule of trainees who are enrolled
+    Route::post('/save_bulk_schedule', [TrainingScheduleController::class, 'saveBulkSchedule']);
+    Route::post('/update_schedule/{id}', [TrainingScheduleController::class, 'updateSchedule'])->name('update_schedule');
+
+
+
+
+
+
 
 
     Route::get('certificate', [Certificate::class, 'index'])->name('admin.certificate');
