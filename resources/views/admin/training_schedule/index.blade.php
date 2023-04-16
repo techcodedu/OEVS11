@@ -41,7 +41,7 @@
 }
 
 .bg-highlight {
-        background-color: #0fc3df; /* Choose any color you prefer */
+        background-color: #ffc107; /* Choose any color you prefer */
     }
 </style>
 
@@ -105,7 +105,6 @@
                                     <thead>
                                         <tr>
                                             <th><input type="checkbox" id="checkAll"></th>
-                                            <th>Select</th>
                                             <th>Student Name</th>
                                             <th>Enrollment Type</th>
                                             <th>Course Name</th>
@@ -113,6 +112,7 @@
                                             <th>Scholarship Grant</th>
                                             <th>Start Date</th>
                                             <th>End Date</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     @php
@@ -143,12 +143,16 @@
                                                             <span class="badge badge-primary">{{ \Carbon\Carbon::parse($enrollment->trainingSchedule->end_date)->format('F j, Y') }}</span>
                                                         @endif
                                                     
-                                                    @if($hasSchedule && $enrollment->trainingSchedule)
+                                                   @if($hasSchedule && $enrollment->trainingSchedule)
                                                         <td>
-                                                            <button type="button" class="btn btn-sm btn-warning" onclick="openOverrideModal(this, {{ $enrollment->trainingSchedule->id }})">Override</button>
-                                                    
+                                                            <button type="button" class="btn btn-sm btn-warning" onclick="openOverrideModal(this, {{ $enrollment->trainingSchedule->id }})" data-toggle="tooltip" data-placement="top" title="Override">
+                                                                <i class="fas fa-check-circle"></i> <!-- Change the icon to the "edit" icon -->
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-danger" onclick="removeSchedule({{ $enrollment->trainingSchedule->id }})" data-toggle="tooltip" data-placement="top" title="Remove Schedule">
+                                                                <i class="fas fa-trash"></i> <!-- Keep the "trash" icon for "Remove Schedule" -->
+                                                            </button>
                                                         </td>
-                                                     @endif      
+                                                    @endif
                                                     </td>
                                                 </tr>
                                             @endif
@@ -288,6 +292,31 @@
                 }
             }
         });
+
+    </script>
+    <script>
+        function removeSchedule(scheduleId) {
+            if (confirm('Are you sure you want to remove the schedule for this student?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/remove_schedule/${scheduleId}`;
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]').content;
+                form.appendChild(csrfToken);
+
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                methodInput.value = 'DELETE';
+                form.appendChild(methodInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
 
     </script>
 

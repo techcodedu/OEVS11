@@ -114,6 +114,8 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     // admin set for the schedule of trainees who are enrolled
     Route::post('/save_bulk_schedule', [TrainingScheduleController::class, 'saveBulkSchedule']);
     Route::post('/update_schedule/{id}', [TrainingScheduleController::class, 'updateSchedule'])->name('update_schedule');
+    Route::delete('/remove_schedule/{id}', [TrainingScheduleController::class, 'removeSchedule'])->name('remove_schedule');
+
 
 
 
