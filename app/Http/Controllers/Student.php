@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Log;
 use App\Models\AssessmentApplication;
+use App\Models\TrainingSchedule;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -60,6 +61,23 @@ class Student extends Controller
       public function profile(){
         return view('admin.studentprofile');
     }
+
+    public function getTrainingSchedule($id)
+    {
+        $trainingSchedule = TrainingSchedule::with('enrollment')->findOrFail($id);
+        
+        $start_date_formatted = Carbon::parse($trainingSchedule->start_date)->format('F j, Y');
+        $end_date_formatted = Carbon::parse($trainingSchedule->end_date)->format('F j, Y');
+        
+        $schedule = [
+            'start_date_formatted' => $start_date_formatted,
+            'end_date_formatted' => $end_date_formatted,
+            'scholarship_grant' => $trainingSchedule->enrollment->scholarship_grant
+        ];
+
+        return response()->json($schedule);
+    }
+
     
     
 }

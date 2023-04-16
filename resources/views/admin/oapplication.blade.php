@@ -161,7 +161,11 @@ td i {
                                             </select>
                                         </td>
                                         <td>
-                                            <a href="#" data-toggle="modal" data-target="#enrollmentModal" data-id="{{ $enrollment->id }}"><i class="fas fa-info-circle"></i></a>
+                                            <a href="#" data-toggle="modal" data-target="#enrollmentModal" data-id="{{ $enrollment->id }}"><i class="fas fa-info-circle" title="View Student Inforamtion and Credentials"></i></a>
+                                            {{-- feedback --}}
+                                         <a href="#" data-toggle="modal" data-target="#feedbackModal" data-id="{{ $enrollment->id }}"><i class="fas fa-comment"></i></a>
+
+
                                         </td>
                                     </tr>
                                     @endforeach
@@ -268,6 +272,32 @@ td i {
         </div><!-- /.container-fluid -->
     </div>
     <!-- /.content -->
+    {{-- modal for feedback --}}
+    <div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="feedbackModalLabel">Submit Feedback</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+               <form action="{{ route('enrollment.storeFeedback') }}" method="POST">
+
+                    @csrf
+                    <input type="hidden" name="enrollment_id" id="enrollment_id" value="0">
+                    <div class="modal-body">
+                        <textarea name="feedback" id="feedback" class="form-control" rows="5" placeholder="Write your feedback here..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Modal for enrollment-->
     <div class="modal fade" id="enrollmentModal" tabindex="-1" role="dialog" aria-labelledby="enrollmentModalLabel" aria-hidden="true">
@@ -684,4 +714,21 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 </script>
+<script>
+    function openFeedbackModal(enrollmentId) {
+        $('#enrollment_id').val(enrollmentId);
+        $('#feedbackModal').modal('show');
+    }
+
+    $(document).ready(function() {
+        $('#feedbackModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var enrollmentId = button.data('id');
+            $('#enrollment_id').val(enrollmentId);
+        });
+    });
+
+
+</script>
+
 @endsection

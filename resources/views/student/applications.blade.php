@@ -12,33 +12,39 @@
                         <th>Course Name</th>
                         <th>Enrollment Type</th>
                         <th>Status</th>
+                         <th>Training Schedule</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($enrollments as $enrollment)
                         <tr>
-                            <td>{{ $enrollment->course->name }}</td>
-                            <td>{{ $enrollment->enrollment_type }}</td>
-                            <td>
-                            <span class="badge badge-{{ $enrollment->status === 'enrolled' ? 'success' : 'warning' }}">
-                                {{ ucfirst($enrollment->status) }}
-                            </span>
-                        </td>
+                                <td>{{ $enrollment->course->name }}</td>
+                                <td>{{ $enrollment->enrollment_type }}</td>
+                                <td>
+                                <span class="badge badge-{{ $enrollment->status === 'enrolled' ? 'success' : 'warning' }}">
+                                    {{ ucfirst($enrollment->status) }}
+                                </span>
+                                </td>
+                                <td>
+                                    @if(!empty($enrollment->trainingSchedule))
+                                         <button type="button" class="btn btn-sm btn-primary mt-2" onclick="viewTrainingSchedule({{ $enrollment->trainingSchedule->id }}, '{{ $enrollment->scholarship_grant }}')">View Schedule</button>
+
+                                    @else
+                                        <span>No schedule yet</span>
+                                    @endif
+                                </td>
+
                         <!-- Update the Course Enrollments Actions -->
-                       <td>
-                            @if ($enrollment->created_at->diffInDays(\Carbon\Carbon::now()) <= 3 && $enrollment->status !== 'enrolled')
-                                <a href="{{ route('enrollments.cancel', $enrollment->id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this enrollment?')">Cancel Enrollment</a>
-                            @elseif ($enrollment->status === 'enrolled')
-                                <button class="btn btn-success btn-sm" disabled>You are accepted</button>
-                                @if (!empty($enrollment->scholarship_grant))
-                                    <br>
-                                    <small>Scholarship: {{ $enrollment->scholarship_grant }}</small>
+                            <td>
+                                @if ($enrollment->created_at->diffInDays(\Carbon\Carbon::now()) <= 3 && $enrollment->status !== 'enrolled')
+                                    <a href="{{ route('enrollments.cancel', $enrollment->id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this enrollment?')">Cancel Enrollment</a>
+                                @elseif ($enrollment->status === 'enrolled')
+                                    <button class="btn btn-success btn-sm" disabled>Vetted for Scholarship</button>
+                                @else
+                                    <button class="btn btn-danger btn-sm" disabled>Cancel Enrollment</button>
                                 @endif
-                            @else
-                                <button class="btn btn-danger btn-sm" disabled>Cancel Enrollment</button>
-                            @endif
-                        </td>
+                            </td>
 
                         </tr>
                     @empty
@@ -112,4 +118,42 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="trainingScheduleModal" tabindex="-1" role="dialog" aria-labelledby="trainingScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trainingScheduleModalLabel">Training Schedule</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Training schedule and scholarship grant details will be populated here via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewTrainingSchedule(scheduleId, scholarshipGrant) {
+    // Fetch the training schedule details via an AJAX request
+    $.get('/get_schedule/' + scheduleId, function(schedule) {
+        // Populate the modal with the fetched data
+        $('#trainingScheduleModal .modal-body').html(`
+            <p><strong>Start Date:</strong> ${schedule.start_date_formatted}</p>
+            <p><strong>End Date:</strong> ${schedule.end_date_formatted}</p>
+            <p><strong>Scholarship Grant:</strong> ${scholarshipGrant || 'N/A'}</p>
+        `);
+
+        // Show the modal
+        $('#trainingScheduleModal').modal('show');
+    });
+}
+
+</script>
+
+
 @endsection
