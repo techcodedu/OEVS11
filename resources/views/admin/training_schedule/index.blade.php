@@ -112,6 +112,7 @@
                                             <th>Scholarship Grant</th>
                                             <th>Start Date</th>
                                             <th>End Date</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     @php
@@ -144,11 +145,11 @@
                                                     
                                                    @if($hasSchedule && $enrollment->trainingSchedule)
                                                         <td>
-                                                            <button type="button" class="btn btn-sm btn-warning" onclick="openOverrideModal(this, {{ $enrollment->trainingSchedule->id }})">
-                                                                <i class="fas fa-pencil-alt"></i> <!-- Add the pencil icon for "Override" -->
+                                                            <button type="button" class="btn btn-sm btn-warning" onclick="openOverrideModal(this, {{ $enrollment->trainingSchedule->id }})" data-toggle="tooltip" data-placement="top" title="Override">
+                                                                <i class="fas fa-check-circle"></i> <!-- Change the icon to the "edit" icon -->
                                                             </button>
-                                                            <button type="button" class="btn btn-sm btn-danger" onclick="removeSchedule({{ $enrollment->trainingSchedule->id }})">
-                                                                <i class="fas fa-trash"></i> <!-- Add the trash icon for "Remove Schedule" -->
+                                                            <button type="button" class="btn btn-sm btn-danger" onclick="removeSchedule({{ $enrollment->trainingSchedule->id }})" data-toggle="tooltip" data-placement="top" title="Remove Schedule">
+                                                                <i class="fas fa-trash"></i> <!-- Keep the "trash" icon for "Remove Schedule" -->
                                                             </button>
                                                         </td>
                                                     @endif
