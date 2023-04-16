@@ -136,14 +136,17 @@
                                                     <td>
                                                         @if($hasSchedule && $enrollment->trainingSchedule->start_date)
                                                             <span class="badge badge-primary">{{ \Carbon\Carbon::parse($enrollment->trainingSchedule->start_date)->format('F j, Y') }}</span>
+                                                        @else
+                                                            No Schedule
                                                         @endif
                                                     </td>
                                                     <td>
                                                         @if($hasSchedule && $enrollment->trainingSchedule->end_date)
                                                             <span class="badge badge-primary">{{ \Carbon\Carbon::parse($enrollment->trainingSchedule->end_date)->format('F j, Y') }}</span>
+                                                        @else
+                                                            No Schedule
                                                         @endif
-                                                    
-                                                   @if($hasSchedule && $enrollment->trainingSchedule)
+                                                    @if($hasSchedule && $enrollment->trainingSchedule)
                                                         <td>
                                                             <button type="button" class="btn btn-sm btn-warning" onclick="openOverrideModal(this, {{ $enrollment->trainingSchedule->id }})" data-toggle="tooltip" data-placement="top" title="Override">
                                                                 <i class="fas fa-check-circle"></i> <!-- Change the icon to the "edit" icon -->
