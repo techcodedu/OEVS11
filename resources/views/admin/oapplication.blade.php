@@ -154,7 +154,7 @@ td i {
                                         <td>{{ $enrollment->course->name }}</td>
                                         <td><span class="badge badge-info">{{ $enrollment->enrollment_type }}</span></td>
                                         <td>
-                                            <select name="status" class="form-control status-select" data-enrollment-id="{{ $enrollment->id }}">
+                                            <select name="status" class="form-control status-select" data-enrollment-id="{{ $enrollment->id }}" data-enrollment-type="{{ $enrollment->enrollment_type }}">
                                                 <option class="status-option" value="inReview" {{ $enrollment->status === 'inReview' ? 'selected' : '' }}>In Review</option>
                                                 <option class="status-option" value="inProgress" {{ $enrollment->status === 'inProgress' ? 'selected' : '' }}>In Progress</option>
                                                 <option class="status-option" value="enrolled" {{ $enrollment->status === 'enrolled' ? 'selected' : '' }}>Enrolled</option>
@@ -164,8 +164,6 @@ td i {
                                             <a href="#" data-toggle="modal" data-target="#enrollmentModal" data-id="{{ $enrollment->id }}"><i class="fas fa-info-circle" title="View Student Inforamtion and Credentials"></i></a>
                                             {{-- feedback --}}
                                             <a href="#" data-toggle="modal" data-target="#feedbackModal" data-id="{{ $enrollment->id }}"><i class="fas fa-comment"></i></a>
-
-
                                         </td>
                                     </tr>
                                     @endforeach
@@ -402,7 +400,7 @@ td i {
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(function () {
+          $(function () {
             // Event listener for opening the enrollment modal window
             $(document).on('click', 'a[data-target="#enrollmentModal"]', function (e) {
                 e.preventDefault();
@@ -430,10 +428,17 @@ td i {
             // Event listener for updating the enrollment status
             $('.status-select').on('change', function () {
                 var enrollmentId = $(this).data('enrollment-id');
+                var enrollmentType = $(this).data('enrollment-type');
                 var newStatus = $(this).val();
                 var enrollmentSelect = $(this); // Save the select element for later use
 
-                if (newStatus === 'enrolled') {
+                if (enrollmentType === 'regular_training' && newStatus === 'enrolled') {
+                    $('#enrollmentStatusModalLabel').text('Confirm Registration Payment');
+                    $('#enrollmentStatusModalBody').html('Has the student paid the registration? <br>' +
+                        '<input type="radio" name="registration_is_paid" value="1"> Yes<br>' +
+                        '<input type="radio" name="registration_is_paid" value="0"> No');
+                }
+                else if (newStatus === 'enrolled') {
                     var scholarshipSelect = '<select name="scholarship" class="form-control">' +
                         '<option value="PESFA">PESFA</option>' +
                         '<option value="STEP">STEP</option>' +
@@ -450,38 +455,49 @@ td i {
                 $('#enrollmentStatusModal').modal('show');
                 // Set the event listener for the "Confirm Update" button
                 $('#confirmEnrollmentUpdate').off('click').on('click', function () {
-                    var selectedScholarship = newStatus === 'enrolled' ? $('select[name="scholarship"]').val() : null;
-                    var forceUpdateScholarship = false;
-                    if (newStatus === 'enrolled') {
-                        // Check for an existing scholarship before calling updateEnrollment
-                        $.ajax({
-                            url: "{{ route('enrollments.checkScholarship', 'ENROLLMENT_ID') }}".replace('ENROLLMENT_ID', enrollmentId),
-                            type: 'GET',
-                            success: function(response) {
-                                if (response.has_scholarship) {
-                                    if (confirm('The user has already been assigned a scholarship grant. Do you want to update it?')) {
-                                        forceUpdateScholarship = true;
-                                    }
-                                }
-                                updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
-                            },
-                            error: function(response) {
-                                console.log("Error checking scholarship:", response);
-                            }
-                        });
+                var selectedScholarship = newStatus === 'enrolled' ? $('select[name="scholarship"]').val() : null;
+                var registrationIsPaid = $('input[name="registration_is_paid"]:checked').val();
+                var forceUpdateScholarship = false;
+                if (enrollmentType === 'regular_training' && newStatus === 'enrolled') {
+                        registrationIsPaid = $('input[name="registration_is_paid"]:checked').val();
+                        if (registrationIsPaid === '0') {
+                            newStatus = 'inReview';
+                        }
                     } else {
-                        // Call updateEnrollment directly if the new status is not "enrolled"
-                        updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship);
+                        registrationIsPaid = null;
                     }
-                });
+                if (newStatus === 'enrolled') {
+                    // Check for an existing scholarship before calling updateEnrollment
+                    $.ajax({
+                        url: "{{ route('enrollments.checkScholarship', 'ENROLLMENT_ID') }}".replace('ENROLLMENT_ID', enrollmentId),
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.has_scholarship) {
+                                if (confirm('The user has already been assigned a scholarship grant. Do you want to update it?')) {
+                                    forceUpdateScholarship = true;
+                                }
+                            }
+                            updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship, registrationIsPaid);
+                        },
+                        error: function(response) {
+                            console.log("Error checking scholarship:", response);
+                        }
+                    });
+                } else {
+                    // Call updateEnrollment directly if the new status is not "enrolled"
+                    updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship, registrationIsPaid);
+                }
+            });
+
 
             });
-            function updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship) {
+            function updateEnrollment(enrollmentId, newStatus, selectedScholarship, enrollmentSelect, forceUpdateScholarship,registrationIsPaid) {
                 $.ajax({
                     url: '/admin/enrollments/updateStatus',
                     type: 'PUT',
                     data: {
                         enrollment: enrollmentId,
+                        registration_is_paid: registrationIsPaid,
                         status: newStatus,
                         scholarship_grant: selectedScholarship,
                         force_update_scholarship: forceUpdateScholarship === true,
@@ -533,7 +549,6 @@ td i {
   
     });
     </script>
-
     <script>
     $(document).ready(function() {
         // Event listener for opening the assessment application modal window

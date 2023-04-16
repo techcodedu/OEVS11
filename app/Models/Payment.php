@@ -32,4 +32,10 @@ class Payment extends Model
     {
         return $this->belongsTo(Enrollment::class);
     }
+    // ...
+    public function paymentHistories()
+    {
+        return $this->hasMany(PaymentHistory::class);
+    }
+
 }

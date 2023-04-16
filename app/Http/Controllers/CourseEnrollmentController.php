@@ -236,8 +236,9 @@ class CourseEnrollmentController extends Controller
     {
         // Load the related data for the enrollment
         $enrollment->load('personalInformation', 'course', 'enrollmentDocuments', 'payment');
+        $payment = $enrollment->payment;
 
-        return view('admin.enrollment.show', compact('enrollment'));
+        return view('admin.enrollment.show', compact('enrollment', 'payment'));
     }
 
     public function emailLinkDetails($enrollmentId)
@@ -258,42 +259,55 @@ class CourseEnrollmentController extends Controller
         return view('student.enrollment_details', compact('enrollment'));
     }
 
-       // method to update the status field of the enrollment in the ADMIN part
-    public function updateStatus(Request $request)
-    {
-        $enrollment = Enrollment::findOrFail($request->enrollment);
-        $newStatus = $request->status;
-        $scholarshipGrant = $request->input('scholarship_grant');
-        $forceUpdateScholarship = $request->input('force_update_scholarship', false);
+        public function updateStatus(Request $request)
+        {
+            $enrollment = Enrollment::findOrFail($request->enrollment);
+            $newStatus = $request->status;
+            $registrationIsPaid = $request->input('registration_is_paid', null);
+            $scholarshipGrant = $request->input('scholarship_grant');
+                $forceUpdateScholarship = $request->input('force_update_scholarship', false);
 
-        // Directly return the response from updateEnrollmentStatus
-        return $this->updateEnrollmentStatus($enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship);
-    }
+            // Directly return the response from updateEnrollmentStatus
+            return $this->updateEnrollmentStatus($enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship, $registrationIsPaid);
+        }
 
-    // method to update the status field and scholarship_grant field of the enrollment
-    private function updateEnrollmentStatus(Enrollment $enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship)
-    {
-        $enrollment->status = $newStatus;
 
-        // Update the "scholarship_grant" field when the status is "enrolled"
-        if ($newStatus === 'enrolled') {
-            if (is_null($enrollment->scholarship_grant) || $forceUpdateScholarship) {
-                $enrollment->scholarship_grant = $scholarshipGrant;
-            } else {
-                return response()->json(['success' => false], 400); // Return a 400 Bad Request if the scholarship already exists
+      // method to update the status field of the enrollment in the ADMIN part
+      private function updateEnrollmentStatus(Enrollment $enrollment, $newStatus, $scholarshipGrant, $forceUpdateScholarship, $registrationIsPaid)
+        {
+            $enrollment->status = $newStatus;
+
+            // Update the "scholarship_grant" field when the status is "enrolled" or "inReview"
+            if (($newStatus === 'enrolled' || $newStatus === 'inReview') && ($enrollment->enrollment_type === 'regular_training' || $enrollment->enrollment_type === 'scholarship')) {
+                $payment = $enrollment->payment;
+                if (!$payment) {
+                    $payment = new Payment();
+                    $payment->enrollment_id = $enrollment->id;
+                    $payment->user_id = $enrollment->user_id; // Add this line to set the user_id
+                }
+                $payment->registration_is_paid = $registrationIsPaid;
+                $payment->save();
+
+                if (is_null($enrollment->scholarship_grant) || $forceUpdateScholarship) {
+                    $enrollment->scholarship_grant = $scholarshipGrant;
+                } else {
+                    return response()->json(['success' => false], 400); // Return a 400 Bad Request if the scholarship already exists
+                }
             }
+
+            $enrollment->save();
+
+            // Send the email notification when the status is updated to "enrolled"
+            if ($newStatus === 'enrolled' && $registrationIsPaid == '1') {
+                    $enrollmentUrl = url('/enrollment/' . $enrollment->id); // Replace with the actual enrollment URL
+                    Mail::to($enrollment->user->email)->send(new EnrollmentStatusUpdated($enrollment, $enrollmentUrl));
+                }
+
+            return response()->json(['success' => true]);
         }
+        
 
-        $enrollment->save();
 
-        // Send the email notification when the status is updated to "enrolled"
-        if ($newStatus === 'enrolled') {
-            $enrollmentUrl = url('/enrollment/' . $enrollment->id); // Replace with the actual enrollment URL
-            Mail::to($enrollment->user->email)->send(new EnrollmentStatusUpdated($enrollment, $enrollmentUrl));
-        }
-
-        return response()->json(['success' => true]);
-    }
 
     public function checkScholarship(Enrollment $enrollment)
     {
