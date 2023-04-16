@@ -252,7 +252,7 @@ td i {
                                     </tr>
                                     @endforeach
                                     <tr id="no-records-row" style="display: none;">
-                                        <td colspan="7" class="text-center">No records found</td>
+                                        <td colspan="7" class="text-center">No records founds</td>
                                     </tr>
                                 </tbody>
                             </table>
