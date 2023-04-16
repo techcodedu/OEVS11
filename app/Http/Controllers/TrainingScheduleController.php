@@ -65,6 +65,15 @@ class TrainingScheduleController extends Controller
         return redirect()->back()->with('success', 'Schedule updated successfully for the student.');
     }
 
+    public function removeSchedule($id)
+    {
+        $schedule = TrainingSchedule::findOrFail($id);
+        $schedule->delete();
+
+        return redirect()->back()->with('success', 'Schedule removed successfully for the student.');
+    }
+
+
 
 
 }
