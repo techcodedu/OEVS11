@@ -69,6 +69,17 @@
                     </p>
                 </a>
             </li>
+             <li class="nav-item">
+                <a href="{{ route('training-schedules.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-globe"></i>
+                    <p>
+                        {{ __('Training Schedule') }}
+                       @if ($newApplicationsCount > 0)
+                            <span class="badge badge-danger ml-1">{{ $newApplicationsCount }}</span>
+                        @endif
+                    </p>
+                </a>
+            </li>
               <li class="nav-item">
                 <a href="{{ route('admin.certificate') }}" class="nav-link">
                     <i class="nav-icon fas fa-certificate"></i>

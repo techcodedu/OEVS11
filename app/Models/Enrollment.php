@@ -88,7 +88,9 @@ class Enrollment extends Model
         return $this->hasOne(Payment::class);
     }
 
-
-
+    public function trainingSchedule()
+    {
+        return $this->hasOne(TrainingSchedule::class);
+    }
     
 }
