@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Log;
 use App\Models\AssessmentApplication;
 use App\Models\TrainingSchedule;
+use App\Models\Enrollment;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -77,7 +78,13 @@ class Student extends Controller
 
         return response()->json($schedule);
     }
-
     
+    public function viewFeedback($id)
+    {
+        $enrollment = Enrollment::findOrFail($id);
+        $feedback = $enrollment->feedback;
+
+        return response()->json($feedback);
+    }
     
 }

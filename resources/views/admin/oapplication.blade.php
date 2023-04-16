@@ -163,7 +163,7 @@ td i {
                                         <td>
                                             <a href="#" data-toggle="modal" data-target="#enrollmentModal" data-id="{{ $enrollment->id }}"><i class="fas fa-info-circle" title="View Student Inforamtion and Credentials"></i></a>
                                             {{-- feedback --}}
-                                         <a href="#" data-toggle="modal" data-target="#feedbackModal" data-id="{{ $enrollment->id }}"><i class="fas fa-comment"></i></a>
+                                            <a href="#" data-toggle="modal" data-target="#feedbackModal" data-id="{{ $enrollment->id }}"><i class="fas fa-comment"></i></a>
 
 
                                         </td>
@@ -715,19 +715,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </script>
 <script>
-    function openFeedbackModal(enrollmentId) {
-        $('#enrollment_id').val(enrollmentId);
-        $('#feedbackModal').modal('show');
-    }
+function openFeedbackModal(enrollmentId) {
+    $('#enrollment_id').val(enrollmentId);
+    $('#feedbackModal').modal('show');
+}
 
-    $(document).ready(function() {
-        $('#feedbackModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var enrollmentId = button.data('id');
-            $('#enrollment_id').val(enrollmentId);
+$(document).ready(function() {
+    $('#feedbackModal form').on('submit', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var enrollmentId = $('#enrollment_id').val();
+        var formData = form.serialize() + '&enrollment_id=' + enrollmentId;
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action'),
+            data: formData,
+            success: function(response) {
+                console.log('Success:', response);
+                $('#feedbackModal').modal('hide');
+                alert('Feedback submitted successfully.'); // Display the alert confirmation
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('Error: ' + textStatus + ' - ' + errorThrown);
+                console.log('Error:', errorThrown, '- jqXHR:', jqXHR);
+                console.log('Response:', jqXHR.responseJSON);
+            }
         });
     });
 
+    $('#feedbackModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var enrollmentId = button.data('id');
+        $('#enrollment_id').val(enrollmentId);
+    });
+});
 
 </script>
 

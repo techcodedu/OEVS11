@@ -17,7 +17,8 @@ class Enrollment extends Model
         'enrollment_type',
         'status',
         'cancellation_status',
-        'scholarship_grant' 
+        'scholarship_grant',
+        'feedback'
     ];
     
     protected $casts = [

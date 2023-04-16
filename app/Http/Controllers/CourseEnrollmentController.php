@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Log;
 
 
 
+
+
 use Illuminate\Http\Response; // Use this line at the top of your controller
 
 
@@ -364,15 +366,13 @@ class CourseEnrollmentController extends Controller
         ]);
 
         $enrollment = Enrollment::find($request->input('enrollment_id'));
+
         $enrollment->update([
             'feedback' => $request->input('feedback'),
         ]);
 
         return redirect()->back()->with('success', 'Feedback submitted successfully.');
     }
-
-
-   
 
 
 
