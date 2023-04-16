@@ -356,6 +356,22 @@ class CourseEnrollmentController extends Controller
         return redirect()->back()->with('error', 'Enrollment cancellation is only allowed within 3 days of enrollment');
     }
 
+    public function storeFeedback(Request $request)
+    {
+        $request->validate([
+            'enrollment_id' => 'required|integer|exists:enrollments,id',
+            'feedback' => 'required|string|max:1000',
+        ]);
+
+        $enrollment = Enrollment::find($request->input('enrollment_id'));
+        $enrollment->update([
+            'feedback' => $request->input('feedback'),
+        ]);
+
+        return redirect()->back()->with('success', 'Feedback submitted successfully.');
+    }
+
+
    
 
 

@@ -116,6 +116,14 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     Route::post('/update_schedule/{id}', [TrainingScheduleController::class, 'updateSchedule'])->name('update_schedule');
     Route::delete('/remove_schedule/{id}', [TrainingScheduleController::class, 'removeSchedule'])->name('remove_schedule');
 
+    //admin send feedback to student credentials
+   Route::post('/application/enrollment/feedback', [CourseEnrollmentController::class, 'storeFeedback'])->name('enrollment.storeFeedback');
+
+
+
+
+
+
 
 
 
@@ -170,6 +178,10 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
 
     // email view details of enrollment
     Route::get('/enrollment/details/{enrollment}', [CourseEnrollmentController::class, 'emailLinkDetails'])->name('enrollment.details');
+
+    // My application student front view schedule
+    Route::get('/get_schedule/{id}', [App\Http\Controllers\Student::class, 'getTrainingSchedule'])->name('get_schedule');
+
 
    
 
