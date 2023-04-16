@@ -63,7 +63,8 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <div class="col-md-12">
+                    <div class="card">
+                        <div class="col-md-12">
                             <form method="GET" action="" class="shared-filter-form training-schedule-filter-form">
                                 <div class="d-flex align-items-center justify-content-end">
                                     <div class="form-group">
@@ -188,6 +189,7 @@
                         </form>
                 </div>
             <!-- /.row -->
+            </div>
             </div>
         </div><!-- /.container-fluid -->
     </div>

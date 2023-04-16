@@ -80,13 +80,6 @@
                     </p>
                 </a>
             </li>
-              <li class="nav-item">
-                <a href="{{ route('admin.certificate') }}" class="nav-link">
-                    <i class="nav-icon fas fa-certificate"></i>
-                    <p>
-                        {{ __('Certificate Issuance') }}
-                    </p>
-                </a>
             </li>
              </li>
               <li class="nav-item">
@@ -107,21 +100,15 @@
                 </a>
                 <ul class="nav nav-treeview" style="display: none;">
                     <li class="nav-item">
-                        <a href="{{ route('admin.studentregistration') }}" class="nav-link">
-                            <i class="fas fa-clipboard-list"></i>
-                            {{ __('Registration') }}
+                        <a href="{{ route('admin.regular_students.index') }}" class="nav-link">
+                            <i class="fas fa-money-bill-wave"></i>
+                            {{ __('Payments') }}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('admin.studprofile') }}" class="nav-link">
-                            <i class="fas fa-user-circle"></i>
-                             {{ __('Profile') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('admin.payments') }}" class="nav-link">
-                            <i class="fas fa-wallet"></i>
-                             {{ __('Payments') }}
+                        <a href="{{ route('admin.students_assessments.index') }}" class="nav-link">
+                            <i class="fas fa-graduation-cap"></i>
+                             {{ __('Assessment') }}
                         </a>
                     </li>
                 </ul>

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\StudentAssessmentController;
 use App\Models\Enrollment;
 
 /*
@@ -119,9 +120,15 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     //admin send feedback to student credentials
     Route::post('/application/enrollment/feedback', [CourseEnrollmentController::class, 'storeFeedback'])->name('enrollment.storeFeedback');
 
-   
+    // admin student payments
+    Route::get('/admin/payments', 'App\Http\Controllers\PaymentController@index')->name('admin.regular_students.index');
+    Route::get('/admin/payments/{payment}/history', 'App\Http\Controllers\PaymentController@history')->name('admin.regular_students.payment_history');
+    Route::get('/admin/payments/{payment}/record-form', 'App\Http\Controllers\PaymentController@recordForm')->name('admin.regular_students.record_form');
+    Route::post('/admin/payments/{payment}/record', 'App\Http\Controllers\PaymentController@recordPayment')->name('admin.regular_students.payment.record');
 
-
+    //admin set students assessment
+    Route::get('student-assessments', [StudentAssessmentController::class, 'index'])->name('admin.students_assessments.index');
+    Route::post('student-assessments', [StudentAssessmentController::class, 'store'])->name('student_assessments.store');
 
 
 

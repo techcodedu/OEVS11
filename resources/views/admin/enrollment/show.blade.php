@@ -134,10 +134,15 @@
                                 </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td>Registration Paid</td>
-                            <td><span class="badge badge-pill {{ $enrollment->registration_is_paid ? 'badge-yes' : 'badge-no' }}">{{ $enrollment->registration_is_paid ? 'Yes' : 'No' }}</span></td>
-                        </tr>
+                       <tr>
+                        <td>Registration Paid</td>
+                        <td>
+                            <span class="badge badge-pill {{ $payment->registration_is_paid == 1 ? 'badge-yes' : 'badge-no' }}">
+                                {{ $payment->registration_is_paid == 1 ? 'Yes' : 'No' }}
+                            </span>
+                        </td>
+                    </tr>
+
                     </table>
                     </table>
                 @else
