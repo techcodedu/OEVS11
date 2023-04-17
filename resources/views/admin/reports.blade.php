@@ -1,5 +1,10 @@
 @extends('layouts.app')
 
+<style>
+      .chart-card-body {
+    height: 300px;
+  }
+</style>
 @section('content')
     <!-- Content Header (Page header) -->
     <div class="content-header">
@@ -18,13 +23,11 @@
     <div class="content">
         <div class="container-fluid">
             <!-- Chart and analytics cards -->
-            <!-- Chart and analytics cards -->
-               <!-- Chart and analytics cards -->
             <div class="row">
                 <!-- Chart card -->
                 <div class="col-lg-4">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body chart-card-body">
                             <canvas id="enrollmentStatusChart"></canvas>
                         </div>
                     </div>
@@ -32,7 +35,7 @@
                 <!-- Line chart card -->
                 <div class="col-lg-4">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body chart-card-body">
                             <canvas id="enrollmentCoursesChart"></canvas>
                         </div>
                     </div>
@@ -40,7 +43,7 @@
                 <!-- Assessment Remarks Bar Chart Card -->
                 <div class="col-lg-4">
                     <div class="card">
-                        <div class="card-body">
+                        <div class="card-body chart-card-body">
                             <canvas id="assessmentRemarksChart"></canvas>
                         </div>
                     </div>
@@ -165,9 +168,11 @@
                             <h3 class="card-title">Enrollments Report</h3>
                             <button class="btn btn-primary" onclick="printTable('enrollmentsTable')">Print</button>
                         </div>
+                        <div class="card-footer clearfix">
                     </div>
                       {{-- end of table card --}}
                 </div>
+                 
             </div>
             <!-- /.row -->
         </div><!-- /.container-fluid -->
