@@ -16,23 +16,22 @@ class StudentAssessmentController extends Controller
             ->whereHas('trainingSchedule', function ($query) {
                 $query->whereNotNull('end_date');
             })
-            ->with(['user', 'course', 'trainingSchedule'])
+            ->with(['user', 'course', 'trainingSchedule', 'studentAssessment'])
             ->get();
 
         return view('admin.students_assessments.index', compact('students'));
     }
-
 
     public function store(Request $request)
     {
         $request->validate([
             'schedule' => 'required|array',
             'schedule.*.enrollment_id' => 'required|integer|exists:enrollments,id',
-            'schedule.*.schedule_date' => 'required|date',
+            'schedule.*.schedule_date' => 'nullable|date',
         ]);
 
         $scheduleData = array_filter($request->schedule, function ($schedule) {
-            return isset($schedule['selected']);
+            return isset($schedule['selected']) && isset($schedule['schedule_date']);
         });
 
         // Debugging code to print scheduleData to the log
@@ -49,7 +48,6 @@ class StudentAssessmentController extends Controller
             ->with('success', 'Assessment schedules saved successfully.');
     }
 
-    
 
 
     public function updateRemarks(Request $request)
