@@ -131,8 +131,13 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     Route::post('student-assessments', [StudentAssessmentController::class, 'store'])->name('student_assessments.store');
    
     Route::post('student-assessments/update-remarks', [StudentAssessmentController::class, 'updateRemarks'])->name('student_assessments.update_remarks');
+    Route::post('/student_assessments/update_schedule_date', [StudentAssessmentController::class, 'updateScheduleDate'])->name('student_assessments.update_schedule_date');
 
     
+    Route::post('/student_assessments/remove_schedule_date', [StudentAssessmentController::class, 'removeScheduleDate'])->name('student_assessments.remove_schedule_date');
+
+
+
 
 
 
