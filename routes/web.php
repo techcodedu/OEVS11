@@ -137,6 +137,8 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     Route::post('/student_assessments/remove_schedule_date', [StudentAssessmentController::class, 'removeScheduleDate'])->name('student_assessments.remove_schedule_date');
 
 
+    // Admin reports
+    Route::get('/reports', [Reports::class, 'index'])->name('admin.reports');
 
 
 
@@ -148,7 +150,7 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
 
 
     Route::get('certificate', [Certificate::class, 'index'])->name('admin.certificate');
-    Route::get('reports', [Reports::class, 'index'])->name('admin.reports');
+    
     Route::get('studentreg', [Student::class, 'registration'])->name('admin.studentregistration');
     Route::get('sprofile', [Student::class, 'profile'])->name('admin.studprofile');
     Route::get('studentprofile', [StudentPayments::class, 'index'])->name('admin.payments');
