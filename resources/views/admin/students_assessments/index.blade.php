@@ -59,7 +59,7 @@
                                             <th>Enrollment Type</th>
                                             <th>End of Training</th>
                                             <th>Schedule Date</th>
-                                            <th>Remarks</th>
+                                            <th style="text-align:center">Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -75,10 +75,10 @@
                                                 <td>{{ $student->course->name }}</td>
                                                 <td>{{ $student->enrollment_type }}</td>
                                                 <td>{{ optional($student->trainingSchedule)->end_date }}</td>
-                                               <td><span class="schedule-date-display">{{ old('schedule.'.$loop->index.'.schedule_date', optional($student->studentAssessment)->schedule_date) }}</span></td>
+                                                <td><span class="schedule-date-display">{{ old('schedule.'.$loop->index.'.schedule_date', optional($student->studentAssessment)->schedule_date) }}</span></td>
                                                 <td class="d-flex align-items-center">
                                                     <input type="hidden" name="schedule[{{ $loop->index }}][schedule_date]" value="{{ old('schedule.'.$loop->index.'.schedule_date', optional($student->assessment)->schedule_date) }}">
-                                                    <select name="schedule[{{ $loop->index }}][remarks]" id="remarks-{{ $student->id }}" data-enrollment-id="{{ $student->id }}" data-student-name="{{ $student->user->name }}" data-course-name="{{ $student->course->name }}" class="form-control remarks-dropdown mr-2" {{ optional($student->studentAssessment)->schedule_date ? '' : 'disabled' }}>
+                                                    <select name="schedule[{{ $loop->index }}][remarks]" id="remarks-{{ $student->id }}" data-enrollment-id="{{ $student->id }}" data-student-name="{{ $student->user->name }}" data-course-name="{{ $student->course->name }}" class="form-control remarks-dropdown mr-2" {{ optional($student->studentAssessment)->schedule_date ? '' : 'disabled' }} style="width: 115px;">
                                                         <option value="">Select</option>
                                                         <option value="Competent">Competent</option>
                                                         <option value="Not Competent">Not Competent</option>
