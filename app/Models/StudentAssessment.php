@@ -9,9 +9,13 @@ class StudentAssessment extends Model
 {
     use HasFactory;
 
+    
+    protected $table = 'student_assessments_schedule';
+
     protected $fillable = [
         'enrollment_id',
         'schedule_date',
+        'remarks'
     ];
 
     protected $casts = [

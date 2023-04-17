@@ -129,8 +129,10 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     //admin set students assessment
     Route::get('student-assessments', [StudentAssessmentController::class, 'index'])->name('admin.students_assessments.index');
     Route::post('student-assessments', [StudentAssessmentController::class, 'store'])->name('student_assessments.store');
+   
+    Route::post('student-assessments/update-remarks', [StudentAssessmentController::class, 'updateRemarks'])->name('student_assessments.update_remarks');
 
-
+    
 
 
 
