@@ -8,35 +8,35 @@
             <!-- small box -->
                     <div class="small-box bg-info">
                         <div class="inner">
-                            <h3>0</h3>
+                             <h3>{{ $enrollmentsCount }}</h3>
 
                             <p>Enrolled</p>
                         </div>
                         <div class="icon">
                         <i class="ion ion-bag"></i>
                         </div>
-                        <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                        <a href="/application" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
             <!-- small box -->
                     <div class="small-box bg-success">
                         <div class="inner">
-                            <h3>0</h3>
+                             <h3>{{ $scheduledAssessmentsCount }}</h3>
 
                             <p>Scheduled for Assessment</p>
                         </div>
                         <div class="icon">
                         <i class="ion ion-bag"></i>
                         </div>
-                        <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                        <a href="/training-schedules" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
             <!-- small box -->
                     <div class="small-box bg-danger">
                         <div class="inner">
-                            <h3>0</h3>
+                            <h3>{{ $onlineRegistered}}</h3>
 
                             <p>Registered Online</p>
                         </div>
@@ -50,7 +50,7 @@
             <!-- small box -->
                     <div class="small-box bg-info">
                         <div class="inner">
-                            <h3>0</h3>
+                            <h3>{{ $uniqueEnrollmentDocumentsCount }}</h3>
 
                             <p>Completed Requirements</p>
                         </div>
