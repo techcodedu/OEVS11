@@ -93,5 +93,10 @@ class Enrollment extends Model
     {
         return $this->hasOne(TrainingSchedule::class);
     }
+    public function assessment()
+    {
+        return $this->hasOne(StudentAssessment::class);
+    }
+
     
 }

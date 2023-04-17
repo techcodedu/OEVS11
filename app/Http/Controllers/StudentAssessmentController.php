@@ -6,6 +6,7 @@ use App\Models\Enrollment;
 use App\Models\TrainingSchedule;
 use App\Models\StudentAssessment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class StudentAssessmentController extends Controller
 {
@@ -30,7 +31,14 @@ class StudentAssessmentController extends Controller
             'schedule.*.schedule_date' => 'required|date',
         ]);
 
-        foreach ($request->schedule as $schedule) {
+        $scheduleData = array_filter($request->schedule, function ($schedule) {
+            return isset($schedule['selected']);
+        });
+
+        // Debugging code to print scheduleData to the log
+        Log::info('Submitted schedule data:', $scheduleData);
+
+        foreach ($scheduleData as $schedule) {
             StudentAssessment::create([
                 'enrollment_id' => $schedule['enrollment_id'],
                 'schedule_date' => $schedule['schedule_date'],
@@ -40,5 +48,23 @@ class StudentAssessmentController extends Controller
         return redirect()->route('admin.students_assessments.index')
             ->with('success', 'Assessment schedules saved successfully.');
     }
+
+    
+
+
+    public function updateRemarks(Request $request)
+    {
+        $request->validate([
+            'enrollment_id' => 'required|integer|exists:student_assessments_schedule,enrollment_id',
+            'remarks' => 'required|in:Competent,Not Competent',
+        ]);
+
+        $assessment = StudentAssessment::where('enrollment_id', $request->input('enrollment_id'))->firstOrFail();
+        $assessment->update(['remarks' => $request->input('remarks')]);
+
+        return response()->json(['message' => 'Remarks updated successfully.']);
+    }
+
+
 
 }
