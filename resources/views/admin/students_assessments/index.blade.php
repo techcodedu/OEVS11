@@ -1,5 +1,34 @@
 @extends('layouts.app')
+<style>
+    .badge-remarks {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1rem;
+    padding: 0.25em 0.5em;
+    border-radius: 0.25rem;
+    }
 
+    .badge-remarks .fas {
+        margin-right: 0.5em;
+    }
+
+    .badge-remarks .fa-check-circle {
+        color: #28a745; /* You can change this color to match your theme */
+    }
+
+    .badge-remarks .fa-times-circle {
+        color: #dc3545; /* You can change this color to match your theme */
+    }
+
+    .badge-remarks .fa-exclamation-circle {
+        color: #6c757d; /* You can change this color to match your theme */
+    }
+    .remarks-dropdown {
+    width: 150px;
+}
+
+
+</style>
 @section('content')
     <div class="content-header">
         <div class="container-fluid">
@@ -30,7 +59,7 @@
                                             <th>Enrollment Type</th>
                                             <th>End of Training</th>
                                             <th>Schedule Date</th>
-                                            <th>Remarks</th>
+                                            <th style="text-align:center">Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -46,14 +75,19 @@
                                                 <td>{{ $student->course->name }}</td>
                                                 <td>{{ $student->enrollment_type }}</td>
                                                 <td>{{ optional($student->trainingSchedule)->end_date }}</td>
-                                                <td>{{ optional($student->assessment)->schedule_date }}</td>
-                                                <td>
-                                                    <input type="hidden" name="schedule[{{ $loop->index }}][schedule_date]" value="">
-                                                    <select name="schedule[{{ $loop->index }}][remarks]" id="remarks-{{ $student->id }}" data-enrollment-id="{{ $student->id }}" class="form-control" {{ optional($student->assessment)->schedule_date ? '' : 'disabled' }}>
+                                                <td><span class="schedule-date-display">{{ old('schedule.'.$loop->index.'.schedule_date', optional($student->studentAssessment)->schedule_date) }}</span></td>
+                                                <td class="d-flex align-items-center">
+                                                    <input type="hidden" name="schedule[{{ $loop->index }}][schedule_date]" value="{{ old('schedule.'.$loop->index.'.schedule_date', optional($student->assessment)->schedule_date) }}">
+                                                    <select name="schedule[{{ $loop->index }}][remarks]" id="remarks-{{ $student->id }}" data-enrollment-id="{{ $student->id }}" data-student-name="{{ $student->user->name }}" data-course-name="{{ $student->course->name }}" class="form-control remarks-dropdown mr-2" {{ optional($student->studentAssessment)->schedule_date ? '' : 'disabled' }} style="width: 115px;">
                                                         <option value="">Select</option>
                                                         <option value="Competent">Competent</option>
                                                         <option value="Not Competent">Not Competent</option>
                                                     </select>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary update-schedule-date mr-2" title="Update Schedule Date"><i class="fas fa-edit"></i></button>
+                                                    <span id="badge-{{ $student->id }}" class="badge badge-remarks">
+                                                        <i class="{{ optional($student->studentAssessment)->remarks === 'Competent' ? 'fas fa-check-circle' : (optional($student->studentAssessment)->remarks === 'Not Competent' ? 'fas fa-times-circle' : 'fas fa-exclamation-circle') }}"></i>
+                                                        {{ optional($student->studentAssessment)->remarks ? optional($student->studentAssessment)->remarks : 'Remarks yet' }}
+                                                    </span>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -77,6 +111,27 @@
             </div>
         </div>
     </div>
+    {{-- modal for updating the remarks --}}
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="confirmationModalLabel">Confirm Assessment</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            The student <strong id="studentName"></strong> completely passed the assessment for <strong id="courseName"></strong>?
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
    <!-- ... -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -98,28 +153,29 @@
         });
     </script>
     <script>
-       document.querySelectorAll('input[type="checkbox"]:not(#checkAll)').forEach(function (checkbox, index) {
-            checkbox.addEventListener('change', function () {
-                let singleRowForm = this.closest('.single-row-form');
-                let scheduleDateInput = singleRowForm.querySelector('input[name="schedule_date"]');
-                let remarksDropdown = singleRowForm.querySelector('select[name="remarks"]');
+    document.querySelectorAll('input[type="checkbox"]:not(#checkAll)').forEach(function (checkbox, index) {
+        checkbox.addEventListener('change', function () {
+            let singleRowForm = this.closest('tr');
+            let scheduleDateInput = singleRowForm.querySelector('input[name="schedule[' + index + '][schedule_date]"]');
+            let scheduleDateDisplay = singleRowForm.querySelector('.schedule-date-display');
+            let remarksDropdown = singleRowForm.querySelector('select[name="schedule[' + index + '][remarks]"]');
 
-                if (this.checked) {
-                    if (document.getElementById('assessment_date').value) {
-                        scheduleDateInput.value = document.getElementById('assessment_date').value;
-                    }
-                    remarksDropdown.disabled = !scheduleDateInput.value;
-
-                    if (scheduleDateInput.value) {
-                        singleRowForm.submit();
-                    }
-                } else {
-                    remarksDropdown.disabled = true;
-                    scheduleDateInput.value = '';
+            if (this.checked) {
+                if (document.getElementById('assessment_date').value) {
+                    scheduleDateInput.value = document.getElementById('assessment_date').value;
+                    scheduleDateDisplay.textContent = scheduleDateInput.value;
                 }
-            });
-        });
+                remarksDropdown.disabled = !scheduleDateInput.value;
 
+                if (scheduleDateInput.value) {
+                    singleRowForm.querySelector('form').submit();
+                }
+            } else {
+                remarksDropdown.disabled = true;
+
+            }
+        });
+    });
        document.getElementById('assessment_date').addEventListener('change', function () {
         let remarksDropdowns = document.querySelectorAll('select[name^="schedule"]');
         let scheduleDateInputs = document.querySelectorAll('input[name^="schedule"][name$="[schedule_date]"]');
@@ -133,14 +189,42 @@
             checkboxes[i].checked = !!scheduleDateInputs[i].value;
         }
     });
+        document.querySelectorAll('.update-schedule-date').forEach(function (button) {
+        button.addEventListener('click', function () {
+            let row = this.closest('tr');
+            let scheduleDateDisplay = row.querySelector('.schedule-date-display');
+            let scheduleDateInput = row.querySelector('input[name^="schedule"][name$="[schedule_date]"]');
+            let remarksDropdown = row.querySelector('.remarks-dropdown');
+
+            let newScheduleDate = prompt('Enter new schedule date (YYYY-MM-DD):', scheduleDateDisplay.textContent.trim());
+            if (newScheduleDate) {
+                scheduleDateDisplay.textContent = newScheduleDate;
+                scheduleDateInput.value = newScheduleDate;
+                remarksDropdown.disabled = false;
+            }
+        });
+    });
+
 
     </script>
     <!-- ... -->
     <script>
-        document.querySelectorAll('select[name^="schedule"]').forEach(function(dropdown) {
-            dropdown.addEventListener('change', function() {
-                let enrollment_id = this.getAttribute('data-enrollment-id');
-                let remarks = this.value;
+    document.querySelectorAll('select[name^="schedule"]').forEach(function(dropdown) {
+        dropdown.addEventListener('change', function() {
+            let enrollment_id = this.getAttribute('data-enrollment-id');
+            let remarks = this.value;
+            let studentName = this.getAttribute('data-student-name');
+            let courseName = this.getAttribute('data-course-name');
+
+            let message = remarks === 'Competent'
+                ? `The student ${studentName} completely passed the assessment for ${courseName}?`
+                : `The student ${studentName} failed the assessment for ${courseName}?`;
+
+            document.querySelector('#confirmationModal .modal-body').textContent = message;
+            $('#confirmationModal').modal('show');
+
+            document.getElementById('confirmButton').onclick = function() {
+                $('#confirmationModal').modal('hide');
 
                 fetch('{{ route("student_assessments.update_remarks") }}', {
                     method: 'POST',
@@ -154,13 +238,32 @@
                 .then(data => {
                     if (data.message) {
                         console.log(data.message);
+
+                        // Inside the .then(data => { ... }) block after the AJAX call
+                        let badge = document.getElementById('badge-' + enrollment_id);
+                        let icon = badge.querySelector('.fas');
+                        icon.classList.remove('fa-check-circle', 'fa-times-circle', 'fa-exclamation-circle');
+                        icon.classList.add(remarks === 'Competent' ? 'fa-check-circle' : (remarks === 'Not Competent' ? 'fa-times-circle' : 'fa-exclamation-circle'));
+
+                        // Remove the previous text node
+                        badge.removeChild(badge.childNodes[1]);
+
+                        // Create a new text node with the updated text
+                        let newText = document.createTextNode(' ' + (remarks ? remarks : 'Remarks yet'));
+
+                        // Add the new text node after the icon
+                        badge.insertBefore(newText, icon.nextSibling);
+
                     }
                 })
                 .catch(error => {
                     console.error('Error updating remarks:', error);
                 });
-            });
+            }
         });
+    });
+
+
     </script>
 @endsection
 
