@@ -101,6 +101,7 @@
 <!-- AdminLTE App -->
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script src="{{ asset('js/adminlte.min.js') }}" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
 <script src="{{ asset('js/custom.js') }}" defer></script>

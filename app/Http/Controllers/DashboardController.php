@@ -16,7 +16,7 @@ class DashboardController extends Controller
     $onlineRegistered = PersonalInformation::count();
      $uniqueEnrollmentDocumentsCount = EnrollmentDocument::distinct('enrollment_id')->count('enrollment_id');
     $scheduledAssessmentsCount = StudentAssessment::whereNotNull('schedule_date')->count();
-    // You can add more queries for the other sections
+   
 
     return view('admin.dashboard', compact('enrollmentsCount', 'scheduledAssessmentsCount','onlineRegistered','uniqueEnrollmentDocumentsCount'));
 }
