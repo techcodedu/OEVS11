@@ -11,17 +11,17 @@ class CustomResetPassword extends BaseResetPassword
 {
     use Queueable;
 
-    protected $token;
+    public $token;
 
     public function __construct($token)
     {
+        parent::__construct($token);
         $this->token = $token;
     }
 
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->to($notifiable->email)
             ->subject('Reset Password Notification')
             ->line('You are receiving this email because we received a password reset request for your account.')
             ->action('Reset Password', url('password/reset', $this->token))
