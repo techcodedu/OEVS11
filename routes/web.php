@@ -202,7 +202,8 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
     //view feedback by student
      Route::get('/student/applications/view-feedback/{id}', [App\Http\Controllers\Student::class, 'viewFeedback'])->name('student.viewFeedback');
 
-
+    // Update student avatar or picture
+     Route::post('/update-avatar', [UserController::class, 'updateAvatar'])->name('update-avatar');
    
 
 
