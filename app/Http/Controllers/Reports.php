@@ -28,11 +28,15 @@ class Reports extends Controller
         // Filter enrollments based on training schedule date range
         if ($request->has('training_date_from') && $request->has('training_date_to') && $request->training_date_from != '' && $request->training_date_to != '') {
             $enrollments->whereHas('trainingSchedule', function ($query) use ($request) {
-                $query->whereBetween(DB::raw('date(start_date)'), [$request->training_date_from, $request->training_date_to]);
+                $query->where(function ($query) use ($request) {
+                    $query->whereBetween('start_date', [$request->training_date_from, $request->training_date_to])
+                        ->orWhereBetween('end_date', [$request->training_date_from, $request->training_date_to]);
+                });
             });
         }
-         Log::info("Enrollments query: " . $enrollments->toSql());
 
+        $filteredEnrollments = $enrollments->get();
+        Log::info('Filtered enrollments:', ['enrollments' => $filteredEnrollments]);
 
         // Filter enrollments based on scheduled assessment date range
         if ($request->has('date_from') && $request->has('date_to')) {
